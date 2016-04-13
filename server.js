@@ -1,87 +1,44 @@
 var express = require("express"),
+    request = require("request"),
     http = require("http"),
     bodyParser = require('body-parser'),
-    redis = require("redis"),
     app = express();
-// set up a static file directory to use for default routing
-// also see the note below about Windows
+
+var $ = require("mongous").Mongous;
+
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
+app.get('/', function(req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
+
 app.listen(3000, function() {
     console.log('App listening on port 3000!');
 });
 
-var tempWins = 0;
-var templosses = 0;
-var response = 0;
-
 app.use(bodyParser());
 
-redisClient = redis.createClient();
+var steamKey = "91B7AEA8FECAFC8C2F96FC4A0E2BF0FA";
+var steamID = "76561197962290933"
+var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
+    +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json"
 
-redisClient.get("wins", function(err, wins){
-    if(err !== null){
-        console.log("Error: "+err);
-        return;
-    }
+request({
+    url: url,
+    json: true
+}, function (error, response, body) {
 
-    tempWins = parseInt(wins,10) || 0;
-});
+    if (!error && response.statusCode === 200) {
+        var tempSteam = body.response;
+        tempSteam.steamID = steamID;
 
-redisClient.get("losses", function(err, losses){
-    if(err !== null){
-        console.log("Error: "+err);
-        return;
-    }
-
-    templosses = parseInt(losses,10)|| 0;
-});
-
-// set up our routes
-app.post('/flip', function(req, res) {
-    if (req.body.call === "heads") {
-        response = 1;
-    } else if (req.body.call === "tails") {
-        response = 2;
-    }
-
-    var flip = randFlip(1, 2);
-
-    if (response === flip) {
-        res.json({
-            "result": "win"
+        $("wsip.userGames").save(tempSteam);
+        $("wsip.userGames").find({}, {"games.name": 1}, function(r){
+            console.log(JSON.stringify(r));
         });
-        redisClient.incr("wins");
-        tempWins = tempWins + 1;
-    } else {
-        res.json({
-            "result": "lose"
-        });
-        redisClient.incr("losses");
-        templosses = templosses + 1;
     }
-});
-
-app.get('/stats', function(req, res) {
-    res.json({
-        "wins": tempWins,
-        "losses": templosses
-    });
-
+    else{
+        console.log("ERROR:"+error);
+    }
 })
 
-app.delete('/stats', function(req, res) {
-    tempWins = 0;
-    templosses = 0;
-    redisClient.set("wins","0");
-    redisClient.set("losses","0");
-    res.json({
-        "wins": tempWins,
-        "losses": templosses
-    });
-})
-
-//logic from https://blog.tompawlak.org/generate-random-values-nodejs-javascript
-function randFlip(low, high) {
-    return Math.floor(Math.random() * (high - low + 1) + low);
-}
