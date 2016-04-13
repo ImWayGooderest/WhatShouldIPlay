@@ -28,13 +28,12 @@
 ## Setting up NodeJS  ##
 1. type: vagrant ssh:
 2. (From the /shared/whatShouldIPlay directory) cd /shared/whatShouldIPlay)
-> 
 
-	1. npm install body-parser --save
-	2. npm install express --save
-	3. npm install mongous --save
-	4. npm install nodemon --save
-	5. npm install request --save
+>	1. npm install body-parser --save
+>	2. npm install express --save
+>	3. npm install mongous --save
+>	4. npm install nodemon --save
+>	5. npm install request --save
 
 ----------
 
@@ -42,5 +41,5 @@
 1. type: vagrant ssh:
 
 > 	1. type: mkdir -p ./mongodb/data
-	2. type: ./mongodb/bin/mongod --dbpath=$HOME/mongodb/data
+>	2. type: ./mongodb/bin/mongod --dbpath=$HOME/mongodb/data
 
