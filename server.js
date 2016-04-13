@@ -23,6 +23,41 @@ var steamID = "76561197962290933"
 var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
     +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json"
 
+app.post('/signup',function(req,res){ 
+    $("wsip.users").save(req.body);
+});
+
+app.post('/exists',function(req,res){
+    $("wsip.users").find(req.body, function(r){
+        if(r.numberReturned == 0){
+            res.json({
+                "exists": "false"
+            });
+        }
+        else{
+            res.json({
+                "exists": "true"
+            });
+        }
+    });
+});
+
+app.post('/signin',function(req,res){
+    $("wsip.users").find(req.body, function(r){
+        console.log(r.documents);
+        if(r.numberReturned == 0){
+            res.json({
+                "exists": "false"
+            });
+        }
+        else{
+            res.json({
+                "exists": "true"
+            });
+        }
+    });
+});
+
 request({
     url: url,
     json: true
@@ -33,9 +68,9 @@ request({
         tempSteam.steamID = steamID;
 
         $("wsip.userGames").save(tempSteam);
-        $("wsip.userGames").find({}, {"games.name": 1}, function(r){
-            console.log(JSON.stringify(r));
-        });
+        //$("wsip.userGames").find({}, {"games.name": 1}, function(r){
+        //    console.log();
+        //});
     }
     else{
         console.log("ERROR:"+error);
