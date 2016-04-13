@@ -49,3 +49,7 @@
 
 > 1. type: cd shared/WhatShouldIPlay
 > 2. type: nodemon
+
+## Viewing The Website (After Setup) ##
+
+Navigate to [http://localhost:3000/](http://localhost:3000/ "http://localhost:3000/")
