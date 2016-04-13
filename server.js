@@ -44,7 +44,7 @@ app.post('/exists',function(req,res){
 
 app.post('/signin',function(req,res){
     $("wsip.users").find(req.body, function(r){
-        console.log(r.documents);
+        console.log(r);
         if(r.numberReturned == 0){
             res.json({
                 "exists": "false"

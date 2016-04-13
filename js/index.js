@@ -72,4 +72,13 @@ $(document).ready(function() {
 
 	    });
   	});
+
+	$("#logOut").click(function() {
+	    $currentUsername = "";
+	    $currentUserSteam = "";
+        $("#signup").show();
+        $("#signin").show();
+        $("#logOut").hide();
+	    $("#greeting").remove();
+  	});
 });
