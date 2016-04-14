@@ -4,7 +4,11 @@ var express = require("express"),
     bodyParser = require('body-parser'),
     app = express();
 
-var $ = require("mongous").Mongous;
+var mongojs = require('mongojs');
+
+var db = mongojs('wsip');
+var users = db.collection('users');
+var userGames = db.collection('userGames');
 
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
@@ -24,38 +28,27 @@ var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/"
     +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json"
 
 app.post('/signup',function(req,res){ 
-    $("wsip.users").save(req.body);
+    users.save(req.body);
 });
 
 app.post('/exists',function(req,res){
-    $("wsip.users").find(req.body, function(r){
-        if(r.numberReturned == 0){
-            res.json({
-                "exists": "false"
-            });
-        }
-        else{
-            res.json({
-                "exists": "true"
-            });
+    console.log(req.body);
+    users.find(req.body, function(err, doc){
+        if(doc != null){
+            console.log("doc: "+JSON.stringify(doc));
+            res.json(doc);
         }
     });
 });
 
 app.post('/signin',function(req,res){
-    $("wsip.users").find(req.body, function(r){
-        console.log(r);
-        if(r.numberReturned == 0){
-            res.json({
-                "exists": "false"
-            });
-        }
-        else{
-            res.json({
-                "exists": "true"
-            });
+    users.find(req.body, function(err, doc){
+        if(doc != null){
+            console.log("doc: "+JSON.stringify(doc));
+            res.json(doc);
         }
     });
+
 });
 
 request({
@@ -67,7 +60,7 @@ request({
         var tempSteam = body.response;
         tempSteam.steamID = steamID;
 
-        $("wsip.userGames").save(tempSteam);
+        userGames.save(tempSteam);
         //$("wsip.userGames").find({}, {"games.name": 1}, function(r){
         //    console.log();
         //});

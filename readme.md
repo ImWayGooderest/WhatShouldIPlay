@@ -31,7 +31,7 @@
 
 >	1. npm install body-parser --save
 >	2. npm install express --save
->	3. npm install mongous --save
+>	3. npm install mongojs --save
 >	4. npm install nodemon --save
 >	5. npm install request --save
 

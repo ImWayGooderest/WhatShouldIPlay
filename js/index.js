@@ -1,5 +1,6 @@
 var $currentUserSteam = ""; 
 var $currentUsername = "";
+var $exists = false;
 
 $(document).ready(function() {
   "use strict";
@@ -10,6 +11,7 @@ $(document).ready(function() {
 	$("#inputDIVSteamID").show();
 	$("#registerSignin-title").empty().append("Sign Up");
 	$("#registerSignIn").modal();
+	$("#errorMsg").hide();
   });
 
   $("#signin").click(function() {
@@ -18,31 +20,38 @@ $(document).ready(function() {
 	$("#inputDIVSteamID").hide();
 	$("#registerSignin-title").empty().append("Sign In");
 	$("#registerSignIn").modal();
+	$("#errorMsg").hide();
   });
 
   	$("#registerButton").click(function() {
+
 	    var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function(v) {return [v.name, v.value];} ));  //returns form values as key value pairs
 	    $.post("http://localhost:3000/exists", {
 	          "username": registrationData.email.toLowerCase(),
 	       	}, function(data) {
-		        if(data.exists == "false"){
-		       		$.post("http://localhost:3000/signup", {
-			        	"username": registrationData.email.toLowerCase(),
-			        	"password": registrationData.password,
-			        	"steamID" : registrationData.steamID
-			        }, function(data) {
-		        	});
-		        	  $("#registerSignIn").modal("hide");
-			          $("#inputEmail").val("");
-			          $("#inputPassword").val("");
-			          $("#inputSteamID").val("");
-		        }
-		        else{
-		        	$("#errorMsg").text("Sign up failed. Account already exists, please try again!");
-		        	$("#errorMsg").effect("shake");
-		        }
-
+	       		if(data.length != 0){
+	       			console.log(data);
+	       			$exists = true;
+	       			console.log("exists");
+	       			$("#errorMsg").show();
+			    	$("#errorMsg").text("Sign up failed. Account already exists, please try again!");
+				    $("#errorMsg").effect("shake");
+				}
 	    });
+
+	    if(!$exists){
+	    	$exists = false;
+			$.post("http://localhost:3000/signup", {
+	        	"username": registrationData.email.toLowerCase(),
+	        	"password": registrationData.password,
+	        	"steamID" : registrationData.steamID
+	        }, function(data) {
+        	});
+        	$("#registerSignIn").modal("hide");
+	        $("#inputEmail").val("");
+	        $("#inputPassword").val("");
+	        $("#inputSteamID").val("");
+	    }
   	});
 
   	$("#signinButton").click(function() {
@@ -51,13 +60,10 @@ $(document).ready(function() {
 	          "username": signinData.email.toLowerCase(),
 	          "password": signinData.password
 	       	}, function(data) {
-		        if(data.exists == "false"){
-		        	$("#errorMsg").text("Sign in failed. Account not found or wrong password!");
-		        	$("#errorMsg").effect("shake");
-		        }
-		        else{
-		        	$currentUsername = signinData.email.toLowerCase();
-		        	//$currentUserSteam = data.steamID;
+	       		if(data.length != 0){
+	       			console.log(data);
+		        	$currentUsername = data[0].username;
+		        	$currentUserSteam = data[0].steamID;
 		        	$("#registerSignIn").modal("hide");
 			        $("#inputEmail").val("");
 			        $("#inputPassword").val("");
@@ -66,11 +72,16 @@ $(document).ready(function() {
 			        $("#signin").hide();
 			        $("#logOut").show();
 
-			        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername + '!</li>';
+			        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername + $currentUserSteam +'!</li>';
 			        $("#navbar").append($greeting);
-		        }
-
+	       		}
 	    });
+
+	    if($currentUsername == ""){
+	    	$("#errorMsg").show();
+	    	$("#errorMsg").text("Sign in failed. Account not found or wrong password!");
+	    	$("#errorMsg").effect("shake");
+		}
   	});
 
 	$("#logOut").click(function() {
