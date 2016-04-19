@@ -19,9 +19,13 @@ $(document).ready(function() {
 		$steamAPI = apiData.steamAPIModal;
 		$giantBombAPI = apiData.giantBombAPIModal;
 		var $greeting = '<span class="text-primary" id="greeting">Steam API: ' + $steamAPI +'<br> Giant Bomb API: '+ $giantBombAPI +'</li>';
-		$("#navbar").append($greeting);
-		$.post("http://localhost:3000/API", {"steamAPI": apiData.steamAPIModal}, function(data){});
+		$("#apiList").append($greeting);
+		$.post("http://localhost:3000/API", {"steamAPI": apiData.steamAPIModal, "giantBombAPI": apiData.giantBombAPIModal}, function(data){});
 		$("#apiModal").modal("hide");
+	});
+
+	$("#gbUpdate").click(function() {
+		$.post("http://localhost:3000/gbAll", {}, function(data){});
 	});
 
 	$("#signup").click(function() {
@@ -30,7 +34,7 @@ $(document).ready(function() {
 		$("#inputDIVSteamID").show();
 		$("#registerSignin-title").empty().append("Sign Up");
 		$("#registerSignIn").modal();
-		$("#errorMsg").hide();
+		$("#errorMsg2").text("");
 	});
 
 	$("#signin").click(function() {
@@ -39,16 +43,15 @@ $(document).ready(function() {
 		$("#inputDIVSteamID").hide();
 		$("#registerSignin-title").empty().append("Sign In");
 		$("#registerSignIn").modal();
-		$("#errorMsg").hide();
+		$("#errorMsg2").text("");
 	});
 
 	$("#registerButton").click(function() {
 		var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function(v) {return [v.name, v.value];} ));  //returns form values as key value pairs
 		$.post("http://localhost:3000/exists", {"username": registrationData.email.toLowerCase()}, function(data) {
 				if(data.length != 0){
-					$("#errorMsg").show();
-		    		$("#errorMsg").text("Sign up failed. Account already exists, please try again!");
-			    	$("#errorMsg").effect("shake");
+		    		$("#errorMsg2").text("Sign up failed. Account already exists, please try again!");
+			    	$("#errorMsg2").effect("shake");
 			}
 			else{
 				$.post("http://localhost:3000/signup", {"username": registrationData.email.toLowerCase(), "password": registrationData.password, "steamID" : registrationData.steamID}, function(data) { 
@@ -80,10 +83,9 @@ $(document).ready(function() {
 		        $("#navbar").append($greeting);
 		        showSteamGames();
        		}
-       		else{
-       			$("#errorMsg").show();
-		    	$("#errorMsg").text("Sign in failed. Account not found or wrong password!");
-		    	$("#errorMsg").effect("shake");
+       		else{     			
+		    	$("#errorMsg2").text("Sign in failed. Account not found or wrong password!");
+		    	$("#errorMsg2").effect("shake");
        		}
 	    });
   	});
@@ -92,13 +94,14 @@ $(document).ready(function() {
 		if($currentUserSteam != ""){
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
 				if(data.length != 0){
-					var text = 'My Steam Games: <br><table class="table table-hover">';
+					var text = $currentUsername+' Steam Games: <br><table style="font-size:160%; "class="table text-center table-hover">';
 					for(var i = 0; i < data.games.length; i++){
-						text += '<tbody><tr><td><img src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data.games[i].appid+'/'+data.games[i].img_logo_url+'.jpg"/>';
+						text += '<tbody><tr><td><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data.games[i].appid+'/'+data.games[i].img_logo_url+'.jpg"/>';
 						var qouted = data.games[i].name;
 						qouted = qouted.replace(/ /g, "+");
-						text += '<td><a href="http://www.giantbomb.com/api/search/?api_key='+$giantBombAPI+'&format=json&resources=game&query='+qouted+'" target="_blank">'+data.games[i].name+'</a>';
-						text += '<td>Time Played: '+data.games[i].playtime_forever+'minutes';
+						//text += '<td><a href="http://www.giantbomb.com/api/search/?api_key='+$giantBombAPI+'&format=json&resources=game&query='+qouted+'" target="_blank">'+data.games[i].name+'</a>';
+						text += '<td><a href="http://localhost:3000/match'+qouted+'" target="_blank">'+data.games[i].name+'</a>';
+						text += '<td>'+data.games[i].playtime_forever+' minutes';
 						text += '<td><button type="button" class="btn btn-primary btn-lg">Giant Bomb Update</button>'
 					}
 					$("#gameList").append(text);

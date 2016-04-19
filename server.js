@@ -9,7 +9,8 @@ var mongojs = require('mongojs');
 var db = mongojs('wsip');
 var users = db.collection('users');
 var userGames = db.collection('userGames');
-var steamKey;
+var giantBombDatabase = db.collection('giantBombDatabase');
+var steamKey, gbKey;
 
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
@@ -25,7 +26,7 @@ app.use(bodyParser());
 
 app.post('/API',function(req,res){ 
     steamKey = req.body.steamAPI;
-    console.log("Steam Key Setup: "+steamKey);
+    gbKey = req.body.giantBombAPI;
 });
 
 app.post('/signup',function(req,res){ 
@@ -33,7 +34,6 @@ app.post('/signup',function(req,res){
 });
 
 app.post('/exists',function(req,res){
-    console.log(req.body);
     users.find(req.body, function(err, doc){
         if(doc != null){
             res.json(doc);
@@ -47,14 +47,15 @@ app.post('/signin',function(req,res){
             res.json(doc);
         }
     });
-
 });
 
 app.post('/update',function(req,res){
     var steamID = req.body.steamID;
-    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/" +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json"
+    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/" +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    console.log(url);
     request({url: url, json: true}, function (error, response, body) {
-        if (!error && response.statusCode === 200) {
+        console.log(response);
+        if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
             tempSteam.steamID = steamID;
             userGames.update({"steamID": steamID},tempSteam, {upsert: true});
@@ -63,8 +64,32 @@ app.post('/update',function(req,res){
         else{
             console.log("ERROR:"+error);
         }
-    })
+    });
 });
 
+app.post('/gbAll',function(req,res){
+    var offset = 210;    
+    for(var x = 0; x < offset; x ++){
+        var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+gbKey+"&filter=platforms:94&offset="+x;
+        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+            if (!error && response.statusCode === 200) {
+                for(var i = 0; i < body.number_of_page_results; i ++){
+                    giantBombDatabase.save(body.results[i]);
+                    console.log("Offset: "+x+". Updating Game "+(i+1));
+                }
+            }
+            else{
+                console.log("ERROR:"+error);
+            }
+        });
+    }
 
+});
 
+app.post('/match',function(req,res){
+    giantBombDatabase.find(req.body, function(err, doc){
+        if(doc != null){
+            res.json(doc);
+        }
+    });
+});
