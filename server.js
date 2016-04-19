@@ -52,9 +52,7 @@ app.post('/signin',function(req,res){
 app.post('/update',function(req,res){
     var steamID = req.body.steamID;
     var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/" +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json";
-    console.log(url);
     request({url: url, json: true}, function (error, response, body) {
-        console.log(response);
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
             tempSteam.steamID = steamID;
@@ -74,8 +72,8 @@ app.post('/gbAll',function(req,res){
         request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
             if (!error && response.statusCode === 200) {
                 for(var i = 0; i < body.number_of_page_results; i ++){
-                    giantBombDatabase.save(body.results[i]);
-                    console.log("Offset: "+x+". Updating Game "+(i+1));
+                    userGames.update(body.results[i].name,body.results[i], {upsert: true});
+                    console.log("Offset: "+x+". Updating Game "+body.results[i].name);
                 }
             }
             else{
@@ -87,6 +85,7 @@ app.post('/gbAll',function(req,res){
 });
 
 app.post('/match',function(req,res){
+    console.log("Matching: "+req.body.name);
     giantBombDatabase.find(req.body, function(err, doc){
         if(doc != null){
             res.json(doc);

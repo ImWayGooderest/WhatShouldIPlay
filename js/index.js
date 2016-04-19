@@ -8,6 +8,7 @@ $(document).ready(function() {
 
 	if($currentUserSteam == ""){
 		$("#update").hide();
+		$("#logOut").hide();
 	}
 
 	if($giantBombAPI == ""){
@@ -94,15 +95,15 @@ $(document).ready(function() {
 		if($currentUserSteam != ""){
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
 				if(data.length != 0){
-					var text = $currentUsername+' Steam Games: <br><table style="font-size:160%; "class="table text-center table-hover">';
+					var text = $currentUsername+' Steam Games: <br><table class="table text-center table-hover">';
 					for(var i = 0; i < data.games.length; i++){
 						text += '<tbody><tr><td><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data.games[i].appid+'/'+data.games[i].img_logo_url+'.jpg"/>';
 						var qouted = data.games[i].name;
 						qouted = qouted.replace(/ /g, "+");
 						//text += '<td><a href="http://www.giantbomb.com/api/search/?api_key='+$giantBombAPI+'&format=json&resources=game&query='+qouted+'" target="_blank">'+data.games[i].name+'</a>';
-						text += '<td><a href="http://localhost:3000/match'+qouted+'" target="_blank">'+data.games[i].name+'</a>';
+						text += '<td id="'+data.games[i].appid+'"><a onclick="matchGame(\''+data.games[i].name+'\','+data.games[i].appid+')" href="javascript:void(0)">'+data.games[i].name+'</a>';
 						text += '<td>'+data.games[i].playtime_forever+' minutes';
-						text += '<td><button type="button" class="btn btn-primary btn-lg">Giant Bomb Update</button>'
+						text += '<td><a href="steam://run/'+data.games[i].appid+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 					}
 					$("#gameList").append(text);
 				}
@@ -123,3 +124,11 @@ $(document).ready(function() {
 	    $("#greeting").remove();
   	});
 });
+
+function matchGame($gameName, $appid){
+		console.log($gameName);
+		$.post("http://localhost:3000/match", {"name": "/"+$gameName+"/"}, function(data) {
+			console.log(data.description);
+			$("#"+$appid).append(data.description);
+		});
+}
