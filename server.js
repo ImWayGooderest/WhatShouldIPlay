@@ -31,6 +31,7 @@ app.post('/API',function(req,res){
 
 app.post('/signup',function(req,res){ 
     users.save(req.body);
+    res.sendStatus(200);
 });
 
 app.post('/exists',function(req,res){

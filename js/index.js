@@ -50,16 +50,16 @@ $(document).ready(function() {
 	$("#registerButton").click(function() {
 		var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function(v) {return [v.name, v.value];} ));  //returns form values as key value pairs
 		$.post("http://localhost:3000/exists", {"username": registrationData.email.toLowerCase()}, function(data) {
-				if(data.length != 0){
-		    		$("#errorMsg2").text("Sign up failed. Account already exists, please try again!");
-			    	$("#errorMsg2").effect("shake");
+			if(data.length != 0){
+		    	$("#errorMsg2").text("Sign up failed. Account already exists, please try again!");
+			    $("#errorMsg2").effect("shake");
 			}
 			else{
 				$.post("http://localhost:3000/signup", {"username": registrationData.email.toLowerCase(), "password": registrationData.password, "steamID" : registrationData.steamID}, function(data) { 
-		        	$("#registerSignIn").modal("hide");
 			        $("#inputEmail").val("");
 			        $("#inputPassword").val("");
 			        $("#inputSteamID").val("");
+			        $("#registerSignIn").modal("hide");
 		    	});
 			}
 		});
