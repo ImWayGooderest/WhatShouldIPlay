@@ -10,6 +10,7 @@ var db = mongojs('wsip');
 var users = db.collection('users');
 var userGames = db.collection('userGames');
 var giantBombDatabase = db.collection('giantBombDatabase');
+var sToGB = db.collection('sToGB');
 var steamKey, gbKey;
 
 app.use(express.static(__dirname));
@@ -57,8 +58,11 @@ app.post('/update',function(req,res){
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
             tempSteam.steamID = steamID;
-            userGames.update({"steamID": steamID},tempSteam, {upsert: true});
-            res.json(tempSteam);
+            userGames.update({"steamID": steamID},tempSteam, {upsert: true}, function (err, docs) {
+                userGames.find({"steamID": steamID}, function (err, docs) {
+                    res.json(docs);
+                });
+            });
         }
         else{
             console.log("ERROR:"+error);
@@ -73,7 +77,7 @@ app.post('/gbAll',function(req,res){
         request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
             if (!error && response.statusCode === 200) {
                 for(var i = 0; i < body.number_of_page_results; i ++){
-                    userGames.update(body.results[i].name,body.results[i], {upsert: true});
+                    giantBombDatabase.update(body.results[i].name,body.results[i], {upsert: true});
                     console.log("Offset: "+x+". Updating Game "+body.results[i].name);
                 }
             }
@@ -85,11 +89,8 @@ app.post('/gbAll',function(req,res){
 
 });
 
-app.post('/match',function(req,res){
-    console.log("Matching: "+req.body.name);
-    giantBombDatabase.find(req.body, function(err, doc){
-        if(doc != null){
-            res.json(doc);
-        }
+app.post('/match/',function(req,res){
+    sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
     });
+    res.sendStatus(200);
 });

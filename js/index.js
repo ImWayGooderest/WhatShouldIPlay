@@ -94,16 +94,24 @@ $(document).ready(function() {
 	function showSteamGames(){
 		if($currentUserSteam != ""){
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
+				data[0].games = _.sortBy(data[0].games,"playtime_forever");
+				data[0].games = data[0].games.reverse();
 				if(data.length != 0){
 					var text = $currentUsername+' Steam Games: <br><table class="table text-center table-hover">';
-					for(var i = 0; i < data.games.length; i++){
-						text += '<tbody><tr><td><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data.games[i].appid+'/'+data.games[i].img_logo_url+'.jpg"/>';
-						var qouted = data.games[i].name;
-						qouted = qouted.replace(/ /g, "+");
-						//text += '<td><a href="http://www.giantbomb.com/api/search/?api_key='+$giantBombAPI+'&format=json&resources=game&query='+qouted+'" target="_blank">'+data.games[i].name+'</a>';
-						text += '<td id="'+data.games[i].appid+'"><a onclick="matchGame(\''+data.games[i].name+'\','+data.games[i].appid+')" href="javascript:void(0)">'+data.games[i].name+'</a>';
-						text += '<td>'+data.games[i].playtime_forever+' minutes';
-						text += '<td><a href="steam://run/'+data.games[i].appid+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+					text += '<thead><tr><th class="text-center">Game Art</th>';
+					text += '<th class="text-center">Steam Appid</th>';
+					text += '<th class="text-center">Giant Bomb ID</th>';
+					text += '<th class="text-center">Title</th>';
+					text += '<th class="text-center">Play Time</th>';
+					text += '<th class="text-center">Launch Game</th>';
+					for(var i = 0; i < data[0].games.length; i++){
+						text += '<tbody><tr><td><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/>';
+						text += '<td>'+data[0].games[i].appid;
+						text += '<td id="table'+data[0].games[i].appid+'"><label for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" id="gbID">'
+						text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
+						text += '<td><a href="#" onclick="match(\''+data[0].games[i].name+'\')">'+data[0].games[i].name+'</a>';
+						text += '<td>'+data[0].games[i].playtime_forever+' minutes';
+						text += '<td><a href="steam://run/'+data[0].games[i].appid+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 					}
 					$("#gameList").append(text);
 				}
@@ -125,10 +133,13 @@ $(document).ready(function() {
   	});
 });
 
-function matchGame($gameName, $appid){
-		console.log($gameName);
-		$.post("http://localhost:3000/match", {"name": "/"+$gameName+"/"}, function(data) {
-			console.log(data.description);
-			$("#"+$appid).append(data.description);
-		});
+function match($appID){
+	var temp = $("#input"+$appID).val();
+	$("#table"+$appID).empty();
+	var text = '<a href="http://www.giantbomb.com/game/3030-'+temp+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+	$("#table"+$appID).append(text);
+	
+	$.post("http://localhost:3000/match", {"steamAppID": parseInt($appID), "giantBombID": parseInt(temp)}, function(data) {
+
+	});
 }
