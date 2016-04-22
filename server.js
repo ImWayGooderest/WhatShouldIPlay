@@ -53,11 +53,26 @@ app.post('/signin',function(req,res){
 
 app.post('/update',function(req,res){
     var steamID = req.body.steamID;
-    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/" +"?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json";
     request({url: url, json: true}, function (error, response, body) {
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
             tempSteam.steamID = steamID;
+
+            // for(var i = 0; i < tempSteam.game_count-1;){
+            //     sToGB.find({"steamAppID": tempSteam.games[i].appid}, function (err, docs) {
+            //         console.log(i +" "+docs+" "+tempSteam.games[i].appid+" "+docs.giantBombID);
+            //         if(docs.length != 0){
+            //             console.log("Found ID, Adding")
+            //             tempSteam.games[i].giantBombID = docs.giantBombID;
+            //         }
+            //         else{
+            //             tempSteam.games[i].giantBombID = 0;
+            //         }
+            //         i++;
+            //     });
+            // }
+
             userGames.update({"steamID": steamID},tempSteam, {upsert: true}, function (err, docs) {
                 userGames.find({"steamID": steamID}, function (err, docs) {
                     res.json(docs);
