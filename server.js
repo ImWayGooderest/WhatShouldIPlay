@@ -59,31 +59,41 @@ app.post('/update',function(req,res){
             var tempSteam = body.response;
             tempSteam.steamID = steamID;
 
-            // for(var i = 0; i < tempSteam.game_count-1;){
-            //     sToGB.find({"steamAppID": tempSteam.games[i].appid}, function (err, docs) {
-            //         console.log(i +" "+docs+" "+tempSteam.games[i].appid+" "+docs.giantBombID);
-            //         if(docs.length != 0){
-            //             console.log("Found ID, Adding")
-            //             tempSteam.games[i].giantBombID = docs.giantBombID;
-            //         }
-            //         else{
-            //             tempSteam.games[i].giantBombID = 0;
-            //         }
-            //         i++;
-            //     });
-            // }
-
-            userGames.update({"steamID": steamID},tempSteam, {upsert: true}, function (err, docs) {
-                userGames.find({"steamID": steamID}, function (err, docs) {
-                    res.json(docs);
-                });
-            });
+            updateStoGB(tempSteam, tempSteam.game_count, res);
         }
         else{
             console.log("ERROR:"+error);
         }
     });
 });
+
+function updateStoGB(tempSteam, gameCount, res){
+    i = 0;
+    (function updateOne() {
+        sToGB.find({steamAppID: tempSteam.games[i].appid.toString()}, function (err, docs) {
+            if(docs.length != 0){
+                console.log(i +" "+docs+" "+tempSteam.games[i].appid+" "+docs[0].giantBombID);
+                console.log("Found ID, Adding")
+                tempSteam.games[i].giantBombID = docs[0].giantBombID.toString();
+                console.log(tempSteam.games[i]);
+            }
+            else{
+                tempSteam.games[i].giantBombID = 0;
+            }
+            i++;
+            if(i < gameCount){
+                updateOne();
+            }
+            else{
+                userGames.update({"steamID": tempSteam.steamID},tempSteam, {upsert: true}, function (err, docs) {
+                    userGames.find({"steamID": tempSteam.steamID}, function (err, docs) {
+                            res.json(docs);
+                    });
+                });
+            }            
+        });
+    })();
+}
 
 app.post('/gbAll',function(req,res){
     var offset = 210;    
