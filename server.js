@@ -129,8 +129,20 @@ app.get('/getGenres',function(req,res){
     });
 });
 
+app.get('/getConcepts',function(req,res){
+    giantBombDatabase.distinct('concepts.name',{}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
 app.post('/searchGenre',function(req,res){
     giantBombDatabase.find({'genres.name': req.body.genre}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
+app.post('/searchConcept',function(req,res){
+    giantBombDatabase.find({'concepts.name': req.body.concept}, function (err, docs) {
          res.json(docs);
     });
 });

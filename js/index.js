@@ -53,14 +53,39 @@ $(document).ready(function() {
 
 		$.get("http://localhost:3000/getGenres", function(data) {
 			if(data.length != 0){
+				data = _.sortBy(data);
 				var text = '<div class="container">';
 
 				text += '<div class="col-lg-12"><h3 class="page-header">Choose a Genre</h3></div>'
 				text += '<table class="table"><tbody>'
 				text += '<tr>'
 				for(var i = 0; i < data.length; i++){
-					text += '<td><button onclick="searchGenre(\''+data[i]+'\')" type="button" class="btn btn-primary btn-lg">'+data[i]+'</button></a>'
+					var noSingleQ = data[i].replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-lg">'+data[i]+'</button></a>'
 					if (((i+1)%5) == 0){
+						text += '<tr>'
+					}
+				}
+				$("#gameList").append(text);
+			}				
+		});
+	});
+
+	$("#searchConcept").click(function() {
+		$("#gameList").empty();		
+
+		$.get("http://localhost:3000/getConcepts", function(data) {
+			if(data.length != 0){
+				data = _.sortBy(data);
+				var text = '<div class="container">';
+
+				text += '<div class="col-lg-12"><h3 class="page-header">Choose a Concept</h3></div>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var i = 0; i < data.length; i++){
+					var noSingleQ = data[i].replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm">'+data[i]+'</button></a>'
+					if (((i+1)%3) == 0){
 						text += '<tr>'
 					}
 				}
@@ -177,6 +202,28 @@ function searchGenre(genre){
 		$("#gameList").empty();
 		if(data.length != 0){
 			var text = 'Genre: '+genre+'<br><table class="table text-center table-hover">';
+					text += '<thead><tr><th class="text-center">Game Art</th>';
+					text += '<th class="text-center">Giant Bomb ID</th>';
+					text += '<th class="text-center">Title</th>';
+					text += '<th class="text-center">Description</th>';
+					text += '<th class="text-center">Launch Game</th>';
+			for(var i = 0; i< data.length; i++){
+				text += '<tbody><tr><td><img class="img-thumbnail" src="'+data[i].image.thumb_url+'">';
+				text += '<td>'+data[i].id;
+				text += '<td>'+data[i].name;
+				text += '<td>'+data[i].deck;
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+			}
+			$("#gameList").append(text);
+		}
+	});
+}
+
+function searchConcept(concept){
+	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
+		$("#gameList").empty();
+		if(data.length != 0){
+			var text = 'Concept: '+concept+'<br><table class="table text-center table-hover">';
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
 					text += '<th class="text-center">Title</th>';
