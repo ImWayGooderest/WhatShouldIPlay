@@ -72,10 +72,7 @@ function updateStoGB(tempSteam, gameCount, res){
     (function updateOne() {
         sToGB.find({steamAppID: tempSteam.games[i].appid.toString()}, function (err, docs) {
             if(docs.length != 0){
-                console.log(i +" "+docs+" "+tempSteam.games[i].appid+" "+docs[0].giantBombID);
-                console.log("Found ID, Adding")
                 tempSteam.games[i].giantBombID = docs[0].giantBombID.toString();
-                console.log(tempSteam.games[i]);
             }
             else{
                 tempSteam.games[i].giantBombID = 0;
@@ -95,27 +92,45 @@ function updateStoGB(tempSteam, gameCount, res){
     })();
 }
 
-app.post('/gbAll',function(req,res){
-    var offset = 210;    
-    for(var x = 0; x < offset; x ++){
-        var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+gbKey+"&filter=platforms:94&offset="+x;
-        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                for(var i = 0; i < body.number_of_page_results; i ++){
-                    giantBombDatabase.update(body.results[i].name,body.results[i], {upsert: true});
-                    console.log("Offset: "+x+". Updating Game "+body.results[i].name);
-                }
-            }
-            else{
-                console.log("ERROR:"+error);
-            }
-        });
-    }
+//app.post('/gbAll',function(req,res){
+//    var offset = 210;    
+//    for(var x = 0; x < offset; x ++){
+//       var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+gbKey+"&filter=platforms:94&offset="+x;
+//        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+//            if (!error && response.statusCode === 200) {
+//                for(var i = 0; i < body.number_of_page_results; i ++){
+//                    giantBombDatabase.update(body.results[i].name,body.results[i], {upsert: true});
+//                    console.log("Offset: "+x+". Updating Game "+body.results[i].name);
+//                }
+//            }
+//            else{
+//                console.log("ERROR:"+error);
+//            }
+//        });
+//    }
+//
+//});
 
+app.post('/match',function(req,res){
+    tempSteamID = req.body.steamAppID;
+    sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
+        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+gbKey+'&format=json'
+        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body){
+            body.results.steamAppID = tempSteamID;
+            giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
+            res.sendStatus(200);
+        });     
+    });   
 });
 
-app.post('/match/',function(req,res){
-    sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
+app.get('/getGenres',function(req,res){
+    giantBombDatabase.distinct('genres.name',{}, function (err, docs) {
+         res.json(docs);
     });
-    res.sendStatus(200);
+});
+
+app.post('/searchGenre',function(req,res){
+    giantBombDatabase.find({'genres.name': req.body.genre}, function (err, docs) {
+         res.json(docs);
+    });
 });

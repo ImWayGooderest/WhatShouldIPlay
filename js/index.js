@@ -9,6 +9,7 @@ $(document).ready(function() {
 	if($currentUserSteam == ""){
 		$("#update").hide();
 		$("#logOut").hide();
+		$("#update").hide();
 	}
 
 	if($giantBombAPI == ""){
@@ -25,9 +26,9 @@ $(document).ready(function() {
 		$("#apiModal").modal("hide");
 	});
 
-	$("#gbUpdate").click(function() {
-		$.post("http://localhost:3000/gbAll", {}, function(data){});
-	});
+	//$("#gbUpdate").click(function() {
+	//	$.post("http://localhost:3000/gbAll", {}, function(data){});
+	//});
 
 	$("#signup").click(function() {
 		$("#signinButton").hide();
@@ -45,6 +46,27 @@ $(document).ready(function() {
 		$("#registerSignin-title").empty().append("Sign In");
 		$("#registerSignIn").modal();
 		$("#errorMsg2").text("");
+	});
+
+	$("#searchGenre").click(function() {
+		$("#gameList").empty();		
+
+		$.get("http://localhost:3000/getGenres", function(data) {
+			if(data.length != 0){
+				var text = '<div class="container">';
+
+				text += '<div class="col-lg-12"><h3 class="page-header">Choose a Genre</h3></div>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var i = 0; i < data.length; i++){
+					text += '<td><button onclick="searchGenre(\''+data[i]+'\')" type="button" class="btn btn-primary btn-lg">'+data[i]+'</button></a>'
+					if (((i+1)%5) == 0){
+						text += '<tr>'
+					}
+				}
+				$("#gameList").append(text);
+			}				
+		});
 	});
 
 	$("#registerButton").click(function() {
@@ -79,7 +101,7 @@ $(document).ready(function() {
 		        $("#signup").hide();
 		        $("#signin").hide();
 		        $("#logOut").show();
-
+		        $("#update").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
 		        showSteamGames();
@@ -92,6 +114,7 @@ $(document).ready(function() {
   	});
 	
 	function showSteamGames(){
+		$("#gameList").empty();		
 		if($currentUserSteam != ""){
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
 				data[0].games = _.sortBy(data[0].games,"playtime_forever");
@@ -101,7 +124,7 @@ $(document).ready(function() {
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Steam Appid</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
-					text += '<th class="text-center">Title</th>';
+					text += '<th class="text-center">Title (Click to search Giant Bomb)</th>';
 					text += '<th class="text-center">Play Time</th>';
 					text += '<th class="text-center">Launch Game</th>';
 					for(var i = 0; i < data[0].games.length; i++){
@@ -146,6 +169,27 @@ function match($appID){
 	var text = '<a href="http://www.giantbomb.com/game/3030-'+temp+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
 	$("#table"+$appID).append(text);
 	$.post("http://localhost:3000/match", {"steamAppID": parseInt($appID), "giantBombID": parseInt(temp)}, function(data) {
+	});
+}
 
+function searchGenre(genre){
+	$.post("http://localhost:3000/searchGenre", {"genre": genre}, function(data) {
+		$("#gameList").empty();
+		if(data.length != 0){
+			var text = 'Genre: '+genre+'<br><table class="table text-center table-hover">';
+					text += '<thead><tr><th class="text-center">Game Art</th>';
+					text += '<th class="text-center">Giant Bomb ID</th>';
+					text += '<th class="text-center">Title</th>';
+					text += '<th class="text-center">Description</th>';
+					text += '<th class="text-center">Launch Game</th>';
+			for(var i = 0; i< data.length; i++){
+				text += '<tbody><tr><td><img class="img-thumbnail" src="'+data[i].image.thumb_url+'">';
+				text += '<td>'+data[i].id;
+				text += '<td>'+data[i].name;
+				text += '<td>'+data[i].deck;
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+			}
+			$("#gameList").append(text);
+		}
 	});
 }
