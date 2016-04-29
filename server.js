@@ -83,14 +83,18 @@ function updateStoGB(tempSteam, gameCount, res){
             }
             else{
                 userGames.update({"steamID": tempSteam.steamID},tempSteam, {upsert: true}, function (err, docs) {
-                    userGames.find({"steamID": tempSteam.steamID}, function (err, docs) {
-                            res.json(docs);
-                    });
+                    res.sendStatus(200);
                 });
             }            
         });
     })();
 }
+
+app.post('/getSteamList',function(req,res){
+    userGames.find({"steamID": req.body.steamID}, function (err, docs) {
+        res.json(docs);
+    });
+});
 
 //app.post('/gbAll',function(req,res){
 //    var offset = 210;    
@@ -129,8 +133,21 @@ app.get('/getGenres',function(req,res){
     });
 });
 
+app.get('/makeHome',function(req,res){
+    giantBombDatabase.find({},{'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
 app.get('/getConcepts',function(req,res){
     giantBombDatabase.distinct('concepts.name',{}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
+app.get('/game/:id',function(req,res){
+    console.log(req.params.id);
+    giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
          res.json(docs);
     });
 });

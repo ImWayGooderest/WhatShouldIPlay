@@ -6,10 +6,16 @@ var $giantBombAPI = "";
 $(document).ready(function() {
 	"use strict";
 
+	var initialLoad = false;
+	if(!initialLoad){
+		makeHome();
+		initialLoad = true;
+	}
+
 	if($currentUserSteam == ""){
 		$("#update").hide();
 		$("#logOut").hide();
-		$("#update").hide();
+		$("#getList").hide();
 	}
 
 	if($giantBombAPI == ""){
@@ -48,6 +54,14 @@ $(document).ready(function() {
 		$("#errorMsg2").text("");
 	});
 
+	$("#home").click(function() {
+		makeHome();
+	});
+
+	$("#brand").click(function() {
+		makeHome();
+	});
+
 	$("#searchGenre").click(function() {
 		$("#gameList").empty();		
 
@@ -56,12 +70,12 @@ $(document).ready(function() {
 				data = _.sortBy(data);
 				var text = '<div class="container">';
 
-				text += '<div class="col-lg-12"><h3 class="page-header">Choose a Genre</h3></div>'
+				text += '<div class="col-lg-12"><h1 class="page-header">Choose a Genre</h1></div>'
 				text += '<table class="table"><tbody>'
 				text += '<tr>'
 				for(var i = 0; i < data.length; i++){
 					var noSingleQ = data[i].replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-lg">'+data[i]+'</button></a>'
+					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-lg btn-block">'+data[i]+'</button></a>'
 					if (((i+1)%5) == 0){
 						text += '<tr>'
 					}
@@ -79,12 +93,13 @@ $(document).ready(function() {
 				data = _.sortBy(data);
 				var text = '<div class="container">';
 
-				text += '<div class="col-lg-12"><h3 class="page-header">Choose a Concept</h3></div>'
+				text += '<div class="col-lg-12"><h1 class="page-header">Choose a Concept</h1></div>'
 				text += '<table class="table"><tbody>'
 				text += '<tr>'
 				for(var i = 0; i < data.length; i++){
 					var noSingleQ = data[i].replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm">'+data[i]+'</button></a>'
+					noSingleQ = noSingleQ.replace(/"/g, "");
+					text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm btn-block">'+data[i]+'</button></a>'
 					if (((i+1)%3) == 0){
 						text += '<tr>'
 					}
@@ -127,6 +142,7 @@ $(document).ready(function() {
 		        $("#signin").hide();
 		        $("#logOut").show();
 		        $("#update").show();
+		        $("#getList").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
 		        showSteamGames();
@@ -141,7 +157,7 @@ $(document).ready(function() {
 	function showSteamGames(){
 		$("#gameList").empty();		
 		if($currentUserSteam != ""){
-			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
+			$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
 				data[0].games = _.sortBy(data[0].games,"playtime_forever");
 				data[0].games = data[0].games.reverse();
 				if(data.length != 0){
@@ -153,19 +169,19 @@ $(document).ready(function() {
 					text += '<th class="text-center">Play Time</th>';
 					text += '<th class="text-center">Launch Game</th>';
 					for(var i = 0; i < data[0].games.length; i++){
-						text += '<tbody><tr><td><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/>';
+						text += '<tbody><tr>'
+						text += '<td><a href=# onclick="view('+data[0].games[i].giantBombID+')"><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/</a>';
 						text += '<td>'+data[0].games[i].appid;
+						text += '<td>'
 						if(data[0].games[i].giantBombID != 0){
-							text +='<td><a href="http://www.giantbomb.com/game/3030-'+data[0].games[i].giantBombID+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+							text +='<a href="http://www.giantbomb.com/game/3030-'+data[0].games[i].giantBombID+'/" target="_blank"><button type="button" class="btn btn-primary">GB ID: '+data[0].games[i].giantBombID+'</button>'
 						}
-						else{
-							text += '<td id="table'+data[0].games[i].appid+'"><label for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" id="gbID">'
-							text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
-						}
+						text += '<label id="table'+data[0].games[i].appid+'" for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" id="gbID">'
+						text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
 						var nameNoSpace = data[0].games[i].name.replace(/ /g, "+");					
 						text += '<td><a href="http://www.giantbomb.com/search/?q='+nameNoSpace+'" target="_blank">'+data[0].games[i].name+'</a>';
 						text += '<td>'+data[0].games[i].playtime_forever+' minutes';
-						text += '<td><a href="steam://run/'+data[0].games[i].appid+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+						text += '<td><a href="steam://run/'+data[0].games[i].appid+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 					}
 					$("#gameList").append(text);
 				}
@@ -174,7 +190,13 @@ $(document).ready(function() {
 	}
 
 	$("#update").click(function() {
-		showSteamGames();
+		$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
+			showSteamGames();
+		});		
+	});
+
+	$("#getList").click(function() {
+		showSteamGames();	
 	});
 	
 	$("#logOut").click(function() {
@@ -183,36 +205,42 @@ $(document).ready(function() {
         $("#signup").show();
         $("#signin").show();
         $("#logOut").hide();
+        $("#update").hide();
+        $("#getList").hide();
 	    $("#greeting").remove();
 	    $("#gameList").empty();
+	    makeHome();
   	});
 });
 
 function match($appID){
-	var temp = $("#input"+$appID).val();
-	$("#table"+$appID).empty();
-	var text = '<a href="http://www.giantbomb.com/game/3030-'+temp+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
-	$("#table"+$appID).append(text);
-	$.post("http://localhost:3000/match", {"steamAppID": parseInt($appID), "giantBombID": parseInt(temp)}, function(data) {
-	});
+	if ($appID != ""){
+		var temp = $("#input"+$appID).val();
+		$("#table"+$appID).empty();
+		var text = '<a href="http://www.giantbomb.com/game/3030-'+temp+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+		$("#table"+$appID).append(text);
+		$.post("http://localhost:3000/match", {"steamAppID": parseInt($appID), "giantBombID": parseInt(temp)}, function(data) {
+		});
+	}
 }
 
 function searchGenre(genre){
 	$.post("http://localhost:3000/searchGenre", {"genre": genre}, function(data) {
 		$("#gameList").empty();
 		if(data.length != 0){
-			var text = 'Genre: '+genre+'<br><table class="table text-center table-hover">';
+			data = shuffle(data);
+			var text = '<h1>Genre: '+genre+'</h1><br><table class="table text-center table-hover">';
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
 					text += '<th class="text-center">Title</th>';
 					text += '<th class="text-center">Description</th>';
 					text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><img class="img-thumbnail" src="'+data[i].image.thumb_url+'">';
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
 				text += '<td>'+data[i].id;
 				text += '<td>'+data[i].name;
 				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 			}
 			$("#gameList").append(text);
 		}
@@ -223,19 +251,49 @@ function searchConcept(concept){
 	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
 		$("#gameList").empty();
 		if(data.length != 0){
-			var text = 'Concept: '+concept+'<br><table class="table text-center table-hover">';
+			data = shuffle(data);
+			var text = '<h1>Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
 					text += '<th class="text-center">Title</th>';
 					text += '<th class="text-center">Description</th>';
 					text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><img class="img-thumbnail" src="'+data[i].image.thumb_url+'">';
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
 				text += '<td>'+data[i].id;
 				text += '<td>'+data[i].name;
 				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"<button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 			}
+			$("#gameList").append(text);
+		}
+	});
+}
+
+function makeHome(){
+	$.get("http://localhost:3000/makeHome", function(data) {
+		$("#gameList").empty();
+		if(data.length != 0){
+			data = shuffle(data);
+			var text = "";
+			for(var i = 0; i< data.length; i++){
+				text += '<a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail" src="'+data[i].image.icon_url+'" height="80" width="80" title="'+data[i].name+'">';
+			}
+			$("#gameList").append(text);
+		}
+	});
+}
+
+function view(id){
+	$.get("http://localhost:3000/game/"+id, function(data) {
+		if(data.length != 0){
+			$("#gameList").empty();
+			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">'+data[0].name+'';
+			text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="'+data[0].image.super_url+'" title="'+data[0].name+'">';
+			text += '<li class="list-group-item"><a href="steam://run/'+data[0].steamAppID+'"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>'
+			text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
+			text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-'+data[0].id+'/" height="600" width="100%"></iframe>'
+			text += '</ul>'
 			$("#gameList").append(text);
 		}
 	});

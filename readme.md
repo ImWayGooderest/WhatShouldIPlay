@@ -1,5 +1,20 @@
-# **What Should I Play Next?** #
+# **What Should I Play?** #
 *CPSC 473 Project* 
+
+
+- Burton Skyler Lister Aley 
+
+
+- Seonghyeon Lim
+
+
+- Brendon Kyle Hollingsworth
+
+
+- Michelle Nicole Beck
+
+
+- Chengcheng Zhu
 
 ----------
 
@@ -26,23 +41,33 @@
 ----------
 
 ## Setting up NodeJS  ##
-1. type: vagrant ssh:
-2. (From the /shared/whatShouldIPlay directory) cd /shared/WhatShouldIPlay)
+1. from command prompt type: vagrant ssh
+2. (From the /shared/whatShouldIPlay directory) `cd /shared/WhatShouldIPlay`
 
->	1. npm install body-parser --save
->	2. npm install express --save
->	3. npm install mongojs --save
->	4. npm install nodemon --save
->	5. npm install request --save
+> 	1. npm install body-parser --save
+> 	2. npm install express --save
+> 	3. npm install mongojs --save
+> 	4. npm install nodemon --save
+> 	5. npm install request --save
 
 ----------
-#Launching "What Should I Play" App
+
+#Launching "What Should I Play" App#
 
 ## Running MongoDB ##
 1. type: vagrant ssh:
 
-> 	1. type: mkdir -p ./mongodb/data
->	2. type: ./mongodb/bin/mongod --dbpath=$HOME/mongodb/data
+> 	1. type: mkdir -p ./mongodb/data 
+> 	2. type: ./mongodb/bin/mongod --dbpath=$HOME/mongodb/data
+
+----------
+
+## Setting up MongoDB ##
+1. type: vagrant ssh:
+2. (From the /home/vagrant/mongodb/bin directory) `cd /home/vagrant/mongodb/bin`
+
+> 	1. type: ./mongorestore -d wsip /home/vagrant/shared/WhatShouldIPlay/wsip/
+
 
 ## Running Nodemon ##
 1. type: vagrant ssh:
