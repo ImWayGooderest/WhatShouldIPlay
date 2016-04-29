@@ -146,7 +146,6 @@ app.get('/getConcepts',function(req,res){
 });
 
 app.get('/game/:id',function(req,res){
-    console.log(req.params.id);
     giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
          res.json(docs);
     });
