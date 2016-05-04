@@ -120,8 +120,10 @@ app.post('/match',function(req,res){
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
         var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+gbKey+'&format=json'
         request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body){
-            body.results.steamAppID = tempSteamID;
-            giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
+            if (body.results.steamAppID != null){
+                body.results.steamAppID = tempSteamID;
+                giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
+            }
             res.sendStatus(200);
         });     
     });   

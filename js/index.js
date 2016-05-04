@@ -2,6 +2,7 @@ var $currentUserSteam = "";
 var $currentUsername = "";
 var $steamAPI = "";
 var $giantBombAPI = "";
+var $allConcepts = "";
 
 $(document).ready(function() {
 	"use strict";
@@ -13,7 +14,6 @@ $(document).ready(function() {
 	}
 
 	if($currentUserSteam == ""){
-		$("#update").hide();
 		$("#logOut").hide();
 		$("#getList").hide();
 	}
@@ -90,21 +90,8 @@ $(document).ready(function() {
 
 		$.get("http://localhost:3000/getConcepts", function(data) {
 			if(data.length != 0){
-				data = _.sortBy(data);
-				var text = '<div class="container">';
-
-				text += '<div class="col-lg-12"><h1 class="page-header">Choose a Concept</h1></div>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
-				for(var i = 0; i < data.length; i++){
-					var noSingleQ = data[i].replace(/'/g, "\\\'");
-					noSingleQ = noSingleQ.replace(/"/g, "");
-					text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm btn-block">'+data[i]+'</button></a>'
-					if (((i+1)%3) == 0){
-						text += '<tr>'
-					}
-				}
-				$("#gameList").append(text);
+				$allConcepts = _.sortBy(data);
+				buildConcepts("a");
 			}				
 		});
 	});
@@ -141,7 +128,6 @@ $(document).ready(function() {
 		        $("#signup").hide();
 		        $("#signin").hide();
 		        $("#logOut").show();
-		        $("#update").show();
 		        $("#getList").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
@@ -154,12 +140,6 @@ $(document).ready(function() {
 	    });
   	});
 
-	$("#update").click(function() {
-		$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
-			showSteamGames(0, "time");
-		});		
-	});
-
 	$("#getList").click(function() {
 		showSteamGames(0, "time");	
 	});
@@ -170,13 +150,57 @@ $(document).ready(function() {
         $("#signup").show();
         $("#signin").show();
         $("#logOut").hide();
-        $("#update").hide();
         $("#getList").hide();
 	    $("#greeting").remove();
 	    $("#gameList").empty();
 	    makeHome();
   	});
 });
+
+function buildConcepts(sort){
+	$("#gameList").empty();
+	var text = '<div class="container">';
+
+	text += '<div class="col-lg-12"><h1 class="page-header">Choose a Concept</h1></div>'
+	text += '<table class="table"><tbody>'
+	text += '<tr>'
+
+	if (sort != "all"){
+		if (sort == "#"){
+			var filData = _.filter($allConcepts, function(word){return word.substring(0,1).toLowerCase() == word.substring(0,1).toUpperCase()});
+		}
+		else{
+			var filData = _.filter($allConcepts, function(word){return word.substring(0,1).toLowerCase() == sort});
+		}
+	}
+	else{
+		var filData = $allConcepts;
+	}
+
+	pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
+	
+	text += '<nav><ul class="pagination pagination-sm">'
+
+	for(var x = 0; x < pages.length; x++){
+		if(pages[x] == sort){
+			text += '<li class="active"><a href="#" onclick="buildConcepts(\''+pages[x]+'\')">'+pages[x]+'</a></li>';
+		}else{
+			text += '<li><a href="#" onclick="buildConcepts(\''+pages[x]+'\')">'+pages[x]+'</a></li>';
+		}
+	}
+	text += '<li><a href="#" onclick="buildConcepts(\'all\')">All</a></li>';
+	text += '</ul></nav>'
+
+	for(var i = 0; i < filData.length; i++){
+		var noSingleQ = filData[i].replace(/'/g, "\\\'");
+		noSingleQ = noSingleQ.replace(/"/g, "");
+		text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm btn-block" title="'+filData[i]+'">'+filData[i]+'</button></a>'
+		if (((i+1)%3) == 0){
+			text += '<tr>'
+		}
+	}
+	$("#gameList").append(text);
+}
 
 function showSteamGames(number, sort){
 		$("#gameList").empty();		
@@ -221,7 +245,7 @@ function showSteamGames(number, sort){
 						if(sort == "time"){
 							data[0].games = _.sortBy(data[0].games,"playtime_forever");
 							data[0].games = data[0].games.reverse();
-							text += 'Sorted By Time. Click Headers Below to Sort'
+							text += 'Sorted By Play Time. Click Headers Below to Sort'
 						}
 						if(sort == "title"){
 							data[0].games = _.sortBy(data[0].games,"name");
@@ -303,16 +327,26 @@ function searchGenre(genre){
 }
 
 function searchConcept(concept){
+	if(concept == "Winners Don't Use Drugs")
+	{
+		concept = '"Winners Don\'t Use Drugs"';
+	}
+
+	if(concept == "Games That Ask You to Press Start But Will Accept Other Buttons")
+	{
+		concept = 'Games That Ask You to Press "Start" But Will Accept Other Buttons';
+	}
+
 	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
 		$("#gameList").empty();
+		var text = '<h1>Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
 		if(data.length != 0){
-			data = shuffle(data);
-			var text = '<h1>Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
-					text += '<thead><tr><th class="text-center">Game Art</th>';
-					text += '<th class="text-center">Giant Bomb ID</th>';
-					text += '<th class="text-center">Title</th>';
-					text += '<th class="text-center">Description</th>';
-					text += '<th class="text-center">Launch Game</th>';
+			data = shuffle(data);			
+			text += '<thead><tr><th class="text-center">Game Art</th>';
+			text += '<th class="text-center">Giant Bomb ID</th>';
+			text += '<th class="text-center">Title</th>';
+			text += '<th class="text-center">Description</th>';
+			text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
 				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
 				text += '<td>'+data[i].id;
@@ -320,8 +354,9 @@ function searchConcept(concept){
 				text += '<td>'+data[i].deck;
 				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 			}
-			$("#gameList").append(text);
+			
 		}
+		$("#gameList").append(text);
 	});
 }
 
