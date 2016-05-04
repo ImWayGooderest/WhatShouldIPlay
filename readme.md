@@ -68,6 +68,11 @@
 
 > 	1. type: ./mongorestore -d wsip /home/vagrant/shared/WhatShouldIPlay/wsip/
 
+## Backing up current MongoDB ##
+1. type: vagrant ssh:
+2. (From the /home/vagrant/mongodb/bin directory) `cd /home/vagrant/mongodb/bin`
+
+> 	1. type: ./mongodump -d wsip -o /home/vagrant/shared/WhatShouldIPlay/
 
 ## Running Nodemon ##
 1. type: vagrant ssh:

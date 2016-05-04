@@ -127,6 +127,8 @@ app.post('/match',function(req,res){
     });   
 });
 
+
+
 app.get('/getGenres',function(req,res){
     giantBombDatabase.distinct('genres.name',{}, function (err, docs) {
          res.json(docs);

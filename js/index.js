@@ -145,7 +145,7 @@ $(document).ready(function() {
 		        $("#getList").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
-		        showSteamGames();
+		        showSteamGames(0, "time");
        		}
        		else{     			
 		    	$("#errorMsg2").text("Sign in failed. Account not found or wrong password!");
@@ -153,50 +153,15 @@ $(document).ready(function() {
        		}
 	    });
   	});
-	
-	function showSteamGames(){
-		$("#gameList").empty();		
-		if($currentUserSteam != ""){
-			$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
-				data[0].games = _.sortBy(data[0].games,"playtime_forever");
-				data[0].games = data[0].games.reverse();
-				if(data.length != 0){
-					var text = $currentUsername+' Steam Games: <br><table class="table text-center table-hover">';
-					text += '<thead><tr><th class="text-center">Game Art</th>';
-					text += '<th class="text-center">Steam Appid</th>';
-					text += '<th class="text-center">Giant Bomb ID</th>';
-					text += '<th class="text-center">Title (Click to search Giant Bomb)</th>';
-					text += '<th class="text-center">Play Time</th>';
-					text += '<th class="text-center">Launch Game</th>';
-					for(var i = 0; i < data[0].games.length; i++){
-						text += '<tbody><tr>'
-						text += '<td><a href=# onclick="view('+data[0].games[i].giantBombID+')"><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/</a>';
-						text += '<td>'+data[0].games[i].appid;
-						text += '<td>'
-						if(data[0].games[i].giantBombID != 0){
-							text +='<a href="http://www.giantbomb.com/game/3030-'+data[0].games[i].giantBombID+'/" target="_blank"><button type="button" class="btn btn-primary">GB ID: '+data[0].games[i].giantBombID+'</button>'
-						}
-						text += '<label id="table'+data[0].games[i].appid+'" for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" id="gbID">'
-						text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
-						var nameNoSpace = data[0].games[i].name.replace(/ /g, "+");					
-						text += '<td><a href="http://www.giantbomb.com/search/?q='+nameNoSpace+'" target="_blank">'+data[0].games[i].name+'</a>';
-						text += '<td>'+data[0].games[i].playtime_forever+' minutes';
-						text += '<td><a href="steam://run/'+data[0].games[i].appid+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
-					}
-					$("#gameList").append(text);
-				}
-			});
-		}	
-	}
 
 	$("#update").click(function() {
 		$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
-			showSteamGames();
+			showSteamGames(0, "time");
 		});		
 	});
 
 	$("#getList").click(function() {
-		showSteamGames();	
+		showSteamGames(0, "time");	
 	});
 	
 	$("#logOut").click(function() {
@@ -212,6 +177,96 @@ $(document).ready(function() {
 	    makeHome();
   	});
 });
+
+function showSteamGames(number, sort){
+		$("#gameList").empty();		
+		if($currentUserSteam != ""){
+			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
+				$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
+					if(data.length != 0){
+						var text = $currentUsername+'\'s Steam Games (Count: '+data[0].games.length+'): <br><table class="table text-center table-hover">';
+						var numTabs = data[0].games.length/100;
+						numTabs = Math.ceil(numTabs);
+
+						text += '<nav><ul class="pagination">'
+
+						if(number != 0){
+							    text +='<li><a href="#" onclick="showSteamGames('+(number-1)+',\''+sort+'\')">&laquo;</a></li>'
+						}
+
+						for(var x = 0; x < numTabs; x ++){
+							if(x == number){
+								text += '<li class="active"><a href="#" onclick="showSteamGames('+x+',\''+sort+'\')">'+x+'</a></li>';
+							}else{
+								text += '<li><a href="#" onclick="showSteamGames('+x+',\''+sort+'\')">'+x+'</a></li>';
+							}
+							
+						}
+
+						if(number != numTabs-1){
+							    text +='<li><a href="#" onclick="showSteamGames('+(number+1)+',\''+sort+'\')">&raquo;</a></li>'
+						}
+
+
+						text += '</ul></nav>'
+
+						var endNum = 100+(number*100);
+
+						if (endNum > data[0].games.length){
+							endNum = data[0].games.length;
+						}
+
+						text += 'Games '+(1+(number*100))+' to '+endNum+'. ';
+
+						if(sort == "time"){
+							data[0].games = _.sortBy(data[0].games,"playtime_forever");
+							data[0].games = data[0].games.reverse();
+							text += 'Sorted By Time. Click Headers Below to Sort'
+						}
+						if(sort == "title"){
+							data[0].games = _.sortBy(data[0].games,"name");
+							text += 'Sorted By Title. Click Headers Below to Sort'
+						}
+						if(sort == "gbID"){
+							data[0].games = _.sortBy(data[0].games,"giantBombID");
+							text += 'Sorted By Giant Bomb ID. Click Headers Below to Sort'
+						}
+						if(sort == "steamID"){
+							data[0].games = _.sortBy(data[0].games,"appid");
+							text += 'Sorted By Steam ID. Click Headers Below to Sort'
+						}
+
+						text += '<thead><tr><th class="text-center">Game Art</th>';
+						text += '<th class="text-center"><a href=# onclick="showSteamGames('+number+',\'steamID\')">Steam Appid</a></th>';
+						text += '<th class="text-center"><a href=# onclick="showSteamGames('+number+',\'gbID\')">Giant Bomb ID</a></th>';
+						text += '<th class="text-center"><a href=# onclick="showSteamGames('+number+',\'title\')"> Title (Click to search Giant Bomb)</a></th>';
+						text += '<th class="text-center"><a href=# onclick="showSteamGames('+number+',\'time\')">Play Time</a></th>';
+						text += '<th class="text-center">Launch Game</th>';
+
+						for(var i = number*100; i < endNum; i++){
+							text += '<tbody><tr>'
+							text += '<td>Game #'+(i+1)+' <a href=# onclick="view('+data[0].games[i].giantBombID+')"><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/</a>';
+							text += '<td>'+data[0].games[i].appid;
+							text += '<td>'
+							if(data[0].games[i].giantBombID != 0){
+								text +='<a href="http://www.giantbomb.com/game/3030-'+data[0].games[i].giantBombID+'/" target="_blank"><button type="button" class="btn btn-primary">GB ID: '+data[0].games[i].giantBombID+'</button></a>'					
+							}
+							else{
+								text +='None Found.<br>'
+							}
+							text += '<label id="table'+data[0].games[i].appid+'" for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" value="'+data[0].games[i].giantBombID+'" id="gbID">'
+							text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
+							var nameNoSpace = data[0].games[i].name.replace(/ /g, "+");					
+							text += '<td><a href="http://www.giantbomb.com/search/?q='+nameNoSpace+'" target="_blank">'+data[0].games[i].name+'</a>';
+							text += '<td>'+data[0].games[i].playtime_forever+' minutes';
+							text += '<td><a href="steam://run/'+data[0].games[i].appid+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+						}
+						$("#gameList").append(text);
+					}
+				});
+			});	
+		}	
+	}
 
 function match($appID){
 	if ($appID != ""){
