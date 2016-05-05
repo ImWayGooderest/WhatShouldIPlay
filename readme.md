@@ -63,10 +63,13 @@
 ----------
 
 ## Setting up MongoDB ##
-1. type: vagrant ssh:
+1. Once MongoDB is running. type: vagrant ssh:
 2. (From the /home/vagrant/mongodb/bin directory) `cd /home/vagrant/mongodb/bin`
 
-> 	1. type: ./mongorestore -d wsip /home/vagrant/shared/WhatShouldIPlay/wsip/
+>   1. type: mongo
+>	2. type: use wsip
+>   3. type: db.dropDatabase()
+> 	3. type: ./mongorestore -d wsip /home/vagrant/shared/WhatShouldIPlay/wsip/
 
 ## Backing up current MongoDB ##
 1. type: vagrant ssh:

@@ -139,7 +139,7 @@ app.get('/getGenres',function(req,res){
 
 app.get('/makeHome',function(req,res){
     giantBombDatabase.find({},{'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
-         res.json(docs);
+        res.json(docs);
     });
 });
 

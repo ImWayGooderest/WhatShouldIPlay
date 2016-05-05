@@ -367,7 +367,9 @@ function makeHome(){
 			data = shuffle(data);
 			var text = "";
 			for(var i = 0; i< data.length; i++){
-				text += '<a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail" src="'+data[i].image.icon_url+'" height="80" width="80" title="'+data[i].name+'">';
+				if(data[i].image != null){
+					text += '<a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail" src="'+data[i].image.icon_url+'" height="80" width="80" title="'+data[i].name+'">';
+				}				
 			}
 			$("#gameList").append(text);
 		}
