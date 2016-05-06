@@ -90,6 +90,20 @@ function updateStoGB(tempSteam, gameCount, res){
     })();
 }
 
+function bestMatch(steamName, res){
+    var noSpace = steamName.replace(/ /g,"+");
+    var url = 'http://www.giantbomb.com/api/search/?api_key='+gbKey+'&format=json&query='+noSpace+'&resources=game';
+    console.log(url);
+    request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+        console.log(body.results[0].id);
+        res.json({'appID': body.results[0].id});
+    });
+}
+
+app.post('/bestMatch',function(req,res){
+    bestMatch(req.body.steamName, res);
+});
+
 app.post('/getSteamList',function(req,res){
     userGames.find({"steamID": req.body.steamID}, function (err, docs) {
         res.json(docs);
@@ -137,20 +151,14 @@ app.get('/getGenres',function(req,res){
     });
 });
 
-app.get('/makeHome',function(req,res){
-    giantBombDatabase.find({},{'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
-        res.json(docs);
-    });
-});
-
 app.get('/getConcepts',function(req,res){
     giantBombDatabase.distinct('concepts.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.get('/game/:id',function(req,res){
-    giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
+app.get('/getThemes',function(req,res){
+    giantBombDatabase.distinct('themes.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
@@ -163,6 +171,24 @@ app.post('/searchGenre',function(req,res){
 
 app.post('/searchConcept',function(req,res){
     giantBombDatabase.find({'concepts.name': req.body.concept}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
+app.post('/searchTheme',function(req,res){
+    giantBombDatabase.find({'themes.name': req.body.theme}, function (err, docs) {
+         res.json(docs);
+    });
+});
+
+app.get('/makeHome',function(req,res){
+    giantBombDatabase.find({},{'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
+        res.json(docs);
+    });
+});
+
+app.get('/game/:id',function(req,res){
+    giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
          res.json(docs);
     });
 });

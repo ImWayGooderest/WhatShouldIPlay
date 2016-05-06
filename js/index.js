@@ -3,6 +3,7 @@ var $currentUsername = "";
 var $steamAPI = "";
 var $giantBombAPI = "";
 var $allConcepts = "";
+var $allThemes = "";
 
 $(document).ready(function() {
 	"use strict";
@@ -70,12 +71,21 @@ $(document).ready(function() {
 				data = _.sortBy(data);
 				var text = '<div class="container">';
 
-				text += '<div class="col-lg-12"><h1 class="page-header">Choose a Genre</h1></div>'
+				text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Genre</h1></div>'
 				text += '<table class="table"><tbody>'
 				text += '<tr>'
+				var toggle = false;
 				for(var i = 0; i < data.length; i++){
+					if(toggle){
+						var color = 'btn-info';
+						toggle = false;
+					}
+					else{
+						var color = 'btn-danger';
+						toggle = true;
+					}
 					var noSingleQ = data[i].replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-lg btn-block">'+data[i]+'</button></a>'
+					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block">'+data[i]+'</button></a>'
 					if (((i+1)%5) == 0){
 						text += '<tr>'
 					}
@@ -92,6 +102,17 @@ $(document).ready(function() {
 			if(data.length != 0){
 				$allConcepts = _.sortBy(data);
 				buildConcepts("a");
+			}				
+		});
+	});
+
+	$("#searchTheme").click(function() {
+		$("#gameList").empty();		
+
+		$.get("http://localhost:3000/getThemes", function(data) {
+			if(data.length != 0){
+				$allThemes = _.sortBy(data);
+				buildThemes("all");
 			}				
 		});
 	});
@@ -161,7 +182,7 @@ function buildConcepts(sort){
 	$("#gameList").empty();
 	var text = '<div class="container">';
 
-	text += '<div class="col-lg-12"><h1 class="page-header">Choose a Concept</h1></div>'
+	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Concept</h1></div>'
 	text += '<table class="table"><tbody>'
 	text += '<tr>'
 
@@ -190,11 +211,72 @@ function buildConcepts(sort){
 	}
 	text += '<li><a href="#" onclick="buildConcepts(\'all\')">All</a></li>';
 	text += '</ul></nav>'
-
+	var toggle = false;
 	for(var i = 0; i < filData.length; i++){
 		var noSingleQ = filData[i].replace(/'/g, "\\\'");
 		noSingleQ = noSingleQ.replace(/"/g, "");
-		text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-primary btn-sm btn-block" title="'+filData[i]+'">'+filData[i]+'</button></a>'
+		if(toggle){
+			var color = 'btn-default';
+			toggle = false;
+		}
+		else{
+			var color = 'btn-warning';
+			toggle = true;
+		}
+		text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn btn-block" title="'+filData[i]+'">'+filData[i]+'</button></a>'
+		if (((i+1)%3) == 0){
+			text += '<tr>'
+		}
+	}
+	$("#gameList").append(text);
+}
+
+function buildThemes(sort){
+	$("#gameList").empty();
+	var text = '<div class="container">';
+
+	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Theme</h1></div>'
+	text += '<table class="table"><tbody>'
+	text += '<tr>'
+
+	if (sort != "all"){
+		if (sort == "#"){
+			var filData = _.filter($allThemes, function(word){return word.substring(0,1).toLowerCase() == word.substring(0,1).toUpperCase()});
+		}
+		else{
+			var filData = _.filter($allThemes, function(word){return word.substring(0,1).toLowerCase() == sort});
+		}
+	}
+	else{
+		var filData = $allThemes;
+	}
+
+	pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
+	
+	text += '<nav><ul class="pagination pagination-sm">'
+
+	for(var x = 0; x < pages.length; x++){
+		if(pages[x] == sort){
+			text += '<li class="active"><a href="#" onclick="buildThemes(\''+pages[x]+'\')">'+pages[x]+'</a></li>';
+		}else{
+			text += '<li><a href="#" onclick="buildThemes(\''+pages[x]+'\')">'+pages[x]+'</a></li>';
+		}
+	}
+	text += '<li><a href="#" onclick="buildThemes(\'all\')">All</a></li>';
+	text += '</ul></nav>'
+	var toggle = false;
+	for(var i = 0; i < filData.length; i++){
+		var noSingleQ = filData[i].replace(/'/g, "\\\'");
+		noSingleQ = noSingleQ.replace(/"/g, "");
+		if(toggle){
+			var color = 'btn-success';
+			toggle = false;
+		}
+		else{
+			var color = 'btn-primary';
+			toggle = true;
+		}
+		text += '<td><button onclick="searchTheme(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block" title="'+filData[i]+'">'+filData[i]+'</button></a>'
 		if (((i+1)%3) == 0){
 			text += '<tr>'
 		}
@@ -211,7 +293,6 @@ function showSteamGames(number, sort){
 						var text = $currentUsername+'\'s Steam Games (Count: '+data[0].games.length+'): <br><table class="table text-center table-hover">';
 						var numTabs = data[0].games.length/100;
 						numTabs = Math.ceil(numTabs);
-
 						text += '<nav><ul class="pagination">'
 
 						if(number != 0){
@@ -279,12 +360,36 @@ function showSteamGames(number, sort){
 								text +='None Found.<br>'
 							}
 							text += '<label id="table'+data[0].games[i].appid+'" for="'+data[0].games[i].appid+'"><small>Enter Giant Bomb ID: </small></label><input id="input'+data[0].games[i].appid+'"type="text" class="form-control input-sm" value="'+data[0].games[i].giantBombID+'" id="gbID">'
+							text += '<button onclick="bestMatch(\''+data[0].games[i].name+'\','+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
 							text += '<button onclick="match('+data[0].games[i].appid+')" type="button" class="btn btn-primary btn-sm">Submit ID</button>';
 							var nameNoSpace = data[0].games[i].name.replace(/ /g, "+");					
 							text += '<td><a href="http://www.giantbomb.com/search/?q='+nameNoSpace+'" target="_blank">'+data[0].games[i].name+'</a>';
 							text += '<td>'+data[0].games[i].playtime_forever+' minutes';
 							text += '<td><a href="steam://run/'+data[0].games[i].appid+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
 						}
+						text += '</table>'
+						text += '<nav><ul class="pagination">'
+
+						if(number != 0){
+							    text +='<li><a href="#" onclick="showSteamGames('+(number-1)+',\''+sort+'\')">&laquo;</a></li>'
+						}
+
+						for(var x = 0; x < numTabs; x ++){
+							if(x == number){
+								text += '<li class="active"><a href="#" onclick="showSteamGames('+x+',\''+sort+'\')">'+x+'</a></li>';
+							}else{
+								text += '<li><a href="#" onclick="showSteamGames('+x+',\''+sort+'\')">'+x+'</a></li>';
+							}
+							
+						}
+
+						if(number != numTabs-1){
+							    text +='<li><a href="#" onclick="showSteamGames('+(number+1)+',\''+sort+'\')">&raquo;</a></li>'
+						}
+
+
+						text += '</ul></nav>'
+
 						$("#gameList").append(text);
 					}
 				});
@@ -303,12 +408,22 @@ function match($appID){
 	}
 }
 
+function bestMatch(name, steamAppID){
+	$.post("http://localhost:3000/bestMatch", {"steamName": name}, function(data) {
+		$("#table"+steamAppID).empty();
+		var text = '<a href="http://www.giantbomb.com/game/3030-'+data.appID+'/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+		$("#table"+steamAppID).append(text);
+		$.post("http://localhost:3000/match", {"steamAppID": parseInt(steamAppID), "giantBombID": parseInt(data.appID)}, function(data) {
+		});
+	});
+}
+
 function searchGenre(genre){
 	$.post("http://localhost:3000/searchGenre", {"genre": genre}, function(data) {
 		$("#gameList").empty();
 		if(data.length != 0){
 			data = shuffle(data);
-			var text = '<h1>Genre: '+genre+'</h1><br><table class="table text-center table-hover">';
+			var text = '<h1 style="color:#dd4814">Genre: '+genre+'</h1><br><table class="table text-center table-hover">';
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
 					text += '<th class="text-center">Title</th>';
@@ -326,6 +441,30 @@ function searchGenre(genre){
 	});
 }
 
+function searchTheme(theme){
+	$.post("http://localhost:3000/searchTheme", {"theme": theme}, function(data) {
+		$("#gameList").empty();
+		var text = '<h1 style="color:#dd4814">Theme: '+theme+'</h1><br><table class="table text-center table-hover">';
+		if(data.length != 0){
+			data = shuffle(data);			
+			text += '<thead><tr><th class="text-center">Game Art</th>';
+			text += '<th class="text-center">Giant Bomb ID</th>';
+			text += '<th class="text-center">Title</th>';
+			text += '<th class="text-center">Description</th>';
+			text += '<th class="text-center">Launch Game</th>';
+			for(var i = 0; i< data.length; i++){
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
+				text += '<td>'+data[i].id;
+				text += '<td>'+data[i].name;
+				text += '<td>'+data[i].deck;
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+			}
+			
+		}
+		$("#gameList").append(text);
+	});
+}
+
 function searchConcept(concept){
 	if(concept == "Winners Don't Use Drugs")
 	{
@@ -339,7 +478,7 @@ function searchConcept(concept){
 
 	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
 		$("#gameList").empty();
-		var text = '<h1>Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
+		var text = '<h1 style="color:#dd4814">Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
 		if(data.length != 0){
 			data = shuffle(data);			
 			text += '<thead><tr><th class="text-center">Game Art</th>';
