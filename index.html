@@ -9,8 +9,8 @@
     <!--https://github.com/coolaj86/knuth-shuffle license: Apache License Version 2.0, January 2004-->
     <script src="js/shuffle.js"></script>
     <!--https://bootswatch.com/united/ Made by Thomas Park. Contact him at thomas@bootswatch.com. Code released under the MIT License. Based on Bootstrap. Icons from Font Awesome. Web fonts from Google.-->
-    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
     <script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">    
     <!--http://www.himpfen.com/shadow-effect-bootstrap-components/.-->
     <link href="css/wsip.css" rel="stylesheet" type="text/css">
     <script src="js/underscore-min.js"></script>
@@ -27,14 +27,30 @@
             <div id="navbar" class="navbar-collapse collapse">
                 <ul class="nav navbar-nav" id="navigationBar">
                     <li class="active" id="home"><a href="#">Home</a></li>
-                    <li><a href="#" id="signup">Sign Up!</a></li>
-                    <li><a href="#" id="signin">Sign In</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Login <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="signup">Sign Up!</a></li>
+                            <li><a href="#" id="signin">Sign In</a></li>
+                        </ul>
+                    </li>
                     <li><a href="#" id="getList">My Steam List</a></li>
-                    <li><a href="#" id="searchGenre">Search By Genre</a></li>
-                    <li><a href="#" id="searchTheme">Search By Theme</a></li>
-                    <li><a href="#" id="searchConcept">Search By Concept</a></li>
-                    <li><a href="#" id="about">About</a></li>
-                    <li><a href="#" id="contact">Contact</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Search <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="searchGenre">Search By Genre</a></li>
+                            <li><a href="#" id="searchTheme">Search By Theme</a></li>
+                            <li><a href="#" id="searchConcept">Search By Concept</a></li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">About <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="#" id="about">About What Should I Play?</a></li>
+                            <li><a href="#" id="contact">Contact Us</a></li>
+                        </ul>
+                    </li>
+
                      <!--<li><a href="#" id="gbUpdate">Giant Bomb Update(Not Working)</a></li>-->
                     <li><a href="#" id="logOut">Log Out</a></li>
                 </ul>

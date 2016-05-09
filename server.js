@@ -189,7 +189,7 @@ app.post('/searchTheme',function(req,res){
 });
 
 app.get('/makeHome',function(req,res){
-    giantBombDatabase.find({},{'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
+    giantBombDatabase.find({},{'image.super_url': 1, 'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
         res.json(docs);
     });
 });

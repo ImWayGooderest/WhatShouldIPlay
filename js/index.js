@@ -357,7 +357,7 @@ function showSteamGames(number, sort){
 
 						for(var i = number*100; i < endNum; i++){
 							text += '<tbody><tr>'
-							text += '<td>Game #'+(i+1)+' <a href=# onclick="view('+data[0].games[i].giantBombID+')"><img class="img-thumbnail" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/</a>';
+							text += '<td>Game #'+(i+1)+' <a href=# onclick="view('+data[0].games[i].giantBombID+')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+data[0].games[i].appid+'/'+data[0].games[i].img_logo_url+'.jpg"/</a>';
 							text += '<td>'+data[0].games[i].appid;
 							text += '<td>'
 							if(data[0].games[i].giantBombID != 0){
@@ -437,7 +437,7 @@ function searchGenre(genre){
 					text += '<th class="text-center">Description</th>';
 					text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
 				text += '<td>'+data[i].id;
 				text += '<td>'+data[i].name;
 				text += '<td>'+data[i].deck;
@@ -460,7 +460,7 @@ function searchTheme(theme){
 			text += '<th class="text-center">Description</th>';
 			text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
 				text += '<td>'+data[i].id;
 				text += '<td>'+data[i].name;
 				text += '<td>'+data[i].deck;
@@ -494,7 +494,7 @@ function searchConcept(concept){
 			text += '<th class="text-center">Description</th>';
 			text += '<th class="text-center">Launch Game</th>';
 			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail box-shadow--6dp" src="'+data[i].image.small_url+'" height="300" width="300"></a>';
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
 				text += '<td>'+data[i].id;
 				text += '<td>'+data[i].name;
 				text += '<td>'+data[i].deck;
@@ -512,12 +512,40 @@ function makeHome(){
 		if(data.length != 0){
 			data = shuffle(data);
 			var text = "";
-			for(var i = 0; i< data.length; i++){
+			text +='<div class="container">'
+  			text +='<br>'
+			text +='<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">'
+			text +='<div class="carousel-inner" role="listbox">'
+			text +='<div class="item active">'
+			text +='<a href=# onclick="view('+data[0].id+')"><img src="'+data[0].image.super_url+'"></img></a>'
+			text +='<a href=# onclick="view('+data[0].id+')"><button type="button" class="btn btn-primary btn-lg">'+data[0].name+'</button></a>'
+			text +='</div>'
+			for(var i = 1; i <100; i++){
+				if(data[i].image != null){
+					text +='<div class="item">'
+					text +='<a href=# onclick="view('+data[i].id+')"><img src="'+data[i].image.super_url+'"></img></a>'
+					text +='<a href=# onclick="view('+data[i].id+')"><button type="button" class="btn btn-primary btn-lg">'+data[i].name+'</button></a>'
+					text +='</div>'
+				}
+			}
+			text +='</div>'
+			text +='<a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">'
+			text +='<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>'		  
+			text +='<span class="sr-only">Previous</span>'		  
+			text +='</a>'		    
+			text +='<a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">'		    
+			text +='<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>'		  
+			text +='<span class="sr-only">Next</span>'		  
+			text +='</a>'		    
+			text +='</div>';
+
+			for(var i = 0; i<100; i++){
 				if(data[i].image != null){
 					text += '<a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail" src="'+data[i].image.icon_url+'" height="80" width="80" title="'+data[i].name+'">';
 				}				
 			}
 			$("#gameList").append(text);
+			$("#myCarousel").carousel();
 		}
 	});
 }
