@@ -10,32 +10,34 @@ $(document).ready(function() {
 
 	var initialLoad = false;
 	if(!initialLoad){
-		makeHome();
-		initialLoad = true;
+		$.post("http://localhost:3000/API", function(data){
+			makeHome();
+			initialLoad = true;
+		});
 	}
 
-	if($currentUserSteam == ""){
-		$("#logOut").hide();
-		$("#getList").hide();
-	}
+	// if($currentUserSteam == ""){
+	// 	$("#logOut").hide();
+	// 	$("#getList").hide();
+	// }
+  //
+	// if($giantBombAPI == ""){
+	// 	$("#apiModal").modal();
+	// }
+  //
+	// $("#setupButton").click(function() {
+	// 	// var apiData = _.object($("#apiModal-form").serializeArray().map(function(v) {return [v.name, v.value];} ));
+	// 	// $steamAPI = apiData.steamAPIModal;
+	// 	// $giantBombAPI = apiData.giantBombAPIModal;
+	// 	// var $greeting = '<span class="text-primary" id="greeting">Steam API: ' + $steamAPI +'<br> Giant Bomb API: '+ $giantBombAPI +'</li>';
+	// 	// $("#apiList").append($greeting);
+	// 	// $.post("http://localhost:3000/API", function(data){});
+	// 	// $("#apiModal").modal("hide");
+	// });
 
-	if($giantBombAPI == ""){
-		$("#apiModal").modal();
-	}
-
-	$("#setupButton").click(function() {
-		var apiData = _.object($("#apiModal-form").serializeArray().map(function(v) {return [v.name, v.value];} ));
-		$steamAPI = apiData.steamAPIModal;
-		$giantBombAPI = apiData.giantBombAPIModal;
-		var $greeting = '<span class="text-primary" id="greeting">Steam API: ' + $steamAPI +'<br> Giant Bomb API: '+ $giantBombAPI +'</li>';
-		$("#apiList").append($greeting);
-		$.post("http://localhost:3000/API", {"steamAPI": apiData.steamAPIModal, "giantBombAPI": apiData.giantBombAPIModal}, function(data){});
-		$("#apiModal").modal("hide");
+	$("#gbUpdate").click(function() {
+		$.post("http://localhost:3000/gbAll", {}, function(data){});
 	});
-
-	//$("#gbUpdate").click(function() {
-	//	$.post("http://localhost:3000/gbAll", {}, function(data){});
-	//});
 
 	$("#signup").click(function() {
 		$("#signinButton").hide();

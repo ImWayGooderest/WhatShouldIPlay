@@ -46,3 +46,7 @@ Network Trash Folder
 Temporary Items
 .apdisk
 node_modules/
+*.xml
+.idea/WhatShouldIPlay.iml
+*.env
+*.xml___jb_tmp___

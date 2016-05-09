@@ -1,4 +1,5 @@
-var express = require("express"),
+var dotenv = require('dotenv').config(),
+    express = require("express"),
     request = require("request"),
     http = require("http"),
     bodyParser = require('body-parser'),
@@ -26,8 +27,8 @@ app.listen(3000, function() {
 app.use(bodyParser());
 
 app.post('/API',function(req,res){ 
-    steamKey = req.body.steamAPI;
-    gbKey = req.body.giantBombAPI;
+    steamKey = process.env.STEAM_API_KEY;
+    gbKey = process.env.GB_API_KEY;
 });
 
 app.post('/signup',function(req,res){ 
