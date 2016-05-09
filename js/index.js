@@ -10,21 +10,22 @@ $(document).ready(function() {
 
 	var initialLoad = false;
 	if(!initialLoad){
-		$.post("http://localhost:3000/API", function(data){
-			if(data === "OK") {
-				makeHome();
-				initialLoad = true;
-			} else {
-				alert(data);
-			}
-
-		});
+		// $.post("http://localhost:3000/API", function(data){
+		// 	if(data === "OK") {
+		// 		makeHome();
+		// 		initialLoad = true;
+		// 	} else {
+		// 		alert(data);
+		// 	}
+    //
+		// });
+		initialLoad = true;
 	}
 
-	// if($currentUserSteam == ""){
-	// 	$("#logOut").hide();
-	// 	$("#getList").hide();
-	// }
+	if($currentUserSteam == ""){
+		$("#logOut").hide();
+		$("#getList").hide();
+	}
   //
 	// if($giantBombAPI == ""){
 	// 	$("#apiModal").modal();
