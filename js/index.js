@@ -1,7 +1,5 @@
 var $currentUserSteam = ""; 
 var $currentUsername = "";
-var $steamAPI = "";
-var $giantBombAPI = "";
 var $allConcepts = "";
 var $allThemes = "";
 
@@ -21,24 +19,10 @@ $(document).ready(function() {
 		});
 	}
 
-	// if($currentUserSteam == ""){
-	// 	$("#logOut").hide();
-	// 	$("#getList").hide();
-	// }
-  //
-	// if($giantBombAPI == ""){
-	// 	$("#apiModal").modal();
-	// }
-  //
-	// $("#setupButton").click(function() {
-	// 	// var apiData = _.object($("#apiModal-form").serializeArray().map(function(v) {return [v.name, v.value];} ));
-	// 	// $steamAPI = apiData.steamAPIModal;
-	// 	// $giantBombAPI = apiData.giantBombAPIModal;
-	// 	// var $greeting = '<span class="text-primary" id="greeting">Steam API: ' + $steamAPI +'<br> Giant Bomb API: '+ $giantBombAPI +'</li>';
-	// 	// $("#apiList").append($greeting);
-	// 	// $.post("http://localhost:3000/API", function(data){});
-	// 	// $("#apiModal").modal("hide");
-	// });
+	if($currentUserSteam == ""){
+		$("#logOut").hide();
+		$("#getList").hide();
+	}
 
 	$("#gbUpdate").click(function() {
 		$.post("http://localhost:3000/gbAll", {}, function(data){});
@@ -71,35 +55,7 @@ $(document).ready(function() {
 	});
 
 	$("#searchGenre").click(function() {
-		$("#gameList").empty();		
-
-		$.get("http://localhost:3000/getGenres", function(data) {
-			if(data.length != 0){
-				data = _.sortBy(data);
-				var text = '<div class="container">';
-
-				text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Genre</h1></div>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
-				var toggle = false;
-				for(var i = 0; i < data.length; i++){
-					if(toggle){
-						var color = 'btn-info';
-						toggle = false;
-					}
-					else{
-						var color = 'btn-danger';
-						toggle = true;
-					}
-					var noSingleQ = data[i].replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block">'+data[i]+'</button></a>'
-					if (((i+1)%5) == 0){
-						text += '<tr>'
-					}
-				}
-				$("#gameList").append(text);
-			}				
-		});
+		buildGenres();
 	});
 
 	$("#searchConcept").click(function() {
@@ -184,6 +140,38 @@ $(document).ready(function() {
 	    makeHome();
   	});
 });
+
+function buildGenres(){
+	$("#gameList").empty();
+
+	$.get("http://localhost:3000/getGenres", function(data) {
+		if(data.length != 0){
+			data = _.sortBy(data);
+			var text = '<div class="container">';
+
+			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Genre</h1></div>'
+			text += '<table class="table"><tbody>'
+			text += '<tr>'
+			var toggle = false;
+			for(var i = 0; i < data.length; i++){
+				if(toggle){
+					var color = 'btn-info';
+					toggle = false;
+				}
+				else{
+					var color = 'btn-danger';
+					toggle = true;
+				}
+				var noSingleQ = data[i].replace(/'/g, "\\\'");
+				text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block">'+data[i]+'</button></a>'
+				if (((i+1)%5) == 0){
+					text += '<tr>'
+				}
+			}
+			$("#gameList").append(text);
+		}				
+	});
+}
 
 function buildConcepts(sort){
 	$("#gameList").empty();
@@ -518,13 +506,17 @@ function makeHome(){
 			text +='<div class="carousel-inner" role="listbox">'
 			text +='<div class="item active">'
 			text +='<a href=# onclick="view('+data[0].id+')"><img src="'+data[0].image.super_url+'"></img></a>'
-			text +='<a href=# onclick="view('+data[0].id+')"><button type="button" class="btn btn-primary btn-lg">'+data[0].name+'</button></a>'
+			text +='<div class="carousel-caption">'
+			text +='<a href=# onclick="view('+data[0].id+')"><h3><span class="label label-default">'+data[0].name+'</span></h3>'
 			text +='</div>'
-			for(var i = 1; i <100; i++){
+			text +='</div>'
+			for(var i = 1; i <108; i++){
 				if(data[i].image != null){
 					text +='<div class="item">'
 					text +='<a href=# onclick="view('+data[i].id+')"><img src="'+data[i].image.super_url+'"></img></a>'
-					text +='<a href=# onclick="view('+data[i].id+')"><button type="button" class="btn btn-primary btn-lg">'+data[i].name+'</button></a>'
+					text +='<div class="carousel-caption">'
+      				text +='<a href=# onclick="view('+data[i].id+')"><h3><span class="label label-default">'+data[i].name+'</span></h3>'
+      				text +='</div>'
 					text +='</div>'
 				}
 			}
@@ -539,7 +531,7 @@ function makeHome(){
 			text +='</a>'		    
 			text +='</div>';
 
-			for(var i = 0; i<100; i++){
+			for(var i = 0; i<108; i++){
 				if(data[i].image != null){
 					text += '<a href=# onclick="view('+data[i].id+')"><img class="img-thumbnail" src="'+data[i].image.icon_url+'" height="80" width="80" title="'+data[i].name+'">';
 				}				
