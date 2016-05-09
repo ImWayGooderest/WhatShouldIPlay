@@ -29,6 +29,12 @@ app.use(bodyParser());
 app.post('/API',function(req,res){ 
     steamKey = process.env.STEAM_API_KEY;
     gbKey = process.env.GB_API_KEY;
+    if(steamKey === null || gbKey === null) {
+        res.send("API keys failed to load!");
+    } else {
+        res.sendStatus(200);
+    }
+      
 });
 
 app.post('/signup',function(req,res){ 
