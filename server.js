@@ -12,7 +12,7 @@ var users = db.collection('users');
 var userGames = db.collection('userGames');
 var giantBombDatabase = db.collection('giantBombDatabase');
 var sToGB = db.collection('sToGB');
-var steamKey, gbKey;
+// var steamKey, gbKey;
 
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
@@ -26,16 +26,16 @@ app.listen(3000, function() {
 
 app.use(bodyParser());
 
-app.post('/API',function(req,res){ 
-    steamKey = process.env.STEAM_API_KEY;
-    gbKey = process.env.GB_API_KEY;
-    if(steamKey === null || gbKey === null) {
-        res.send("API keys failed to load!");
-    } else {
-        res.sendStatus(200);
-    }
-      
-});
+// app.post('/API',function(req,res){ 
+//     steamKey = process.env.STEAM_API_KEY;
+//     gbKey = process.env.GB_API_KEY;
+//     if(steamKey === null || gbKey === null) {
+//         res.send("API keys failed to load!");
+//     } else {
+//         res.sendStatus(200);
+//     }
+//      
+// });
 
 app.post('/signup',function(req,res){ 
     users.save(req.body);
@@ -60,7 +60,7 @@ app.post('/signin',function(req,res){
 
 app.post('/update',function(req,res){
     var steamID = req.body.steamID;
-    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+steamKey+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
     request({url: url, json: true}, function (error, response, body) {
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
@@ -99,7 +99,7 @@ function updateStoGB(tempSteam, gameCount, res){
 
 function bestMatch(steamName, res){
     var noSpace = steamName.replace(/ /g,"+");
-    var url = 'http://www.giantbomb.com/api/search/?api_key='+gbKey+'&format=json&query='+noSpace+'&resources=game';
+    var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=game';
     console.log(url);
     request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
         console.log(body.results[0].id);
@@ -120,7 +120,7 @@ app.post('/getSteamList',function(req,res){
 //app.post('/gbAll',function(req,res){
 //    var offset = 210;    
 //    for(var x = 0; x < offset; x ++){
-//       var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+gbKey+"&filter=platforms:94&offset="+x;
+//       var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+process.env.GB_API_KEY+"&filter=platforms:94&offset="+x;
 //        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
 //            if (!error && response.statusCode === 200) {
 //                for(var i = 0; i < body.number_of_page_results; i ++){
@@ -139,7 +139,7 @@ app.post('/getSteamList',function(req,res){
 app.post('/match',function(req,res){
     tempSteamID = req.body.steamAppID;
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
-        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+gbKey+'&format=json'
+        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json'
         request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body){
             if (body.results.steamAppID != null){
                 body.results.steamAppID = tempSteamID;
