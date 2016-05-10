@@ -109,6 +109,7 @@ $(document).ready(function() {
 		        $("#inputSteamID").val("");
 		        $("#signup").hide();
 		        $("#signin").hide();
+		        $("#login").hide();
 		        $("#logOut").show();
 		        $("#getList").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
@@ -131,6 +132,7 @@ $(document).ready(function() {
 	    $currentUserSteam = "";
         $("#signup").show();
         $("#signin").show();
+        $("#login").show();
         $("#logOut").hide();
         $("#getList").hide();
 	    $("#greeting").remove();
@@ -578,7 +580,7 @@ function renderAboutPage(){
     
     text += '<div class="container">';
     text += '<h2>"What Should I Play?"</h2>';
-    text += '<div style="text-align:left;"><h4>"What Should I Play?" is made for gamers who looks for other entertaining games and it enables gamers run their Steam games directly on our website.</h4></div>';
+    text += '<div style="text-align:left;"><h4>"What Should I Play?" is a website made for gamers who are looking for other entertaining games.<br>It enables gamers to run their Steam games directly from our website.</h4></div>';
     text += '</div>'
     
     text += '<div class="container">';
