@@ -114,7 +114,8 @@ $(document).ready(function() {
 		        $("#getList").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
-		        showSteamGames(0, "time");
+		        // showSteamGames(0, "time");
+						showSteamGames();
        		}
        		else{     			
 		    	$("#errorMsg2").text("Sign in failed. Account not found or wrong password!");
@@ -124,9 +125,97 @@ $(document).ready(function() {
   	});
 
 	$("#getList").click(function() {
-		showSteamGames(0, "time");	
+		// showSteamGames(0, "time");
+		showSteamGames();
 	});
-	
+
+	function showSteamGames() {
+		$("#gameList").empty();
+		if($currentUserSteam != ""){
+			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
+				$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
+					if(data.length != 0){
+						var dataSet = data[0]["games"];
+						$("#gameList").empty().append(
+							$currentUsername+'\'s Steam Games (Count: '+data[0].games.length+'):\
+							<table id="gameTable" class="table text-center table-hover"">\
+                <thead>\
+                    <tr>\
+                      <th class="text-center">Game Art</th>\
+                      <th class="text-center">Steam App ID</th>\
+                      <th class="text-center">Giant Bomb ID</th>\
+                      <th class="text-center">Title</th>\
+                      <th class="text-center">Play Time</th>\
+                      <th class="text-center">Launch Game</th>\
+                    </tr>\
+                </thead>\
+              </table>');
+						$('#gameTable').DataTable( {
+							"processing": true,
+							"serverSide": false,
+							"data": dataSet,
+							"columnDefs": [
+								{
+									"targets": [ 0 ],
+									"searchable": false,
+									"data": "img_logo_url",
+									"render":function ( data, type, row ) {
+										return '<a href=# onclick="view('+ row["giantBombId"]+')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+row["appid"]+'/'+data+'.jpg"/</a>';//game art';
+									}
+								},
+								{
+									"targets": [ 1 ],
+									"searchable": false,
+									"data": "appid"
+								},
+								{
+									"targets": [ 2 ],
+									"searchable": false,
+									"data": "giantBombID",
+									"render":function ( data, type, row ) {
+										var text = "";
+
+										if (data != 0) {
+											text += '<a href="http://www.giantbomb.com/game/3030-' + data + '/" target="_blank"><button type="button" class="btn btn-primary">GB ID: ' + data + '</button></a>';
+										}
+										else {
+											text += 'None Found.<br>'
+										}
+										text += '<label id="table' + data["appid"] + '" for="' + data["appid"] + '"><small>Enter Giant Bomb ID: </small></label><input id="input' + data["appid"] + '" type="text" class="form-control input-sm" value="' + data + '" id="gbID">';
+										text += '<button onclick="bestMatch(\'' + data["name"] + '\',' + data["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
+										text += '<button onclick="match(' + data["appid"] + ')"	type="button" class="btn btn-primary btn-sm">Submit ID</button>';
+										return text;
+									}
+								},
+								{
+									"targets": [ 3 ],
+									"data": "name",
+									"render":function ( data, type, row ) {
+										var nameNoSpace = data.replace(/ /g, "+");
+										return '<a href="http://www.giantbomb.com/search/?q='+nameNoSpace+'" target="_blank">'+data+'</a>';
+									}
+								},
+								{
+									"targets": [ 4 ],
+									"searchable": false,
+									"data": "playtime_forever"
+								},
+								{
+									"targets": [ 5 ],
+									"searchable": false,
+									"data": "appid",
+									"render":function ( data, type, row ) {
+										return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+									}
+
+								}
+							]
+						});
+					}
+				});
+			});
+		}
+	}
 	$("#logOut").click(function() {
 	    $currentUsername = "";
 	    $currentUserSteam = "";
@@ -289,7 +378,7 @@ function buildThemes(sort){
 	$("#gameList").append(text);
 }
 
-function showSteamGames(number, sort){
+function showSteamGamesOld(number, sort){
 		$("#gameList").empty();		
 		if($currentUserSteam != ""){
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
