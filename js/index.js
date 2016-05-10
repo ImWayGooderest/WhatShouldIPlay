@@ -137,6 +137,16 @@ $(document).ready(function() {
 	    $("#gameList").empty();
 	    makeHome();
   	});
+      
+    $("#about").click(function(){
+        renderAboutPage();
+        //render the content of About webpage
+    });
+    
+    $("#contact").click(function(){
+        renderContactPage();
+        //render the content of Contact webpage
+    });
 });
 
 function buildGenres(){
@@ -559,4 +569,35 @@ function view(id){
 function randomGame(){
 	var game = _.sample($allGamesHome);
 	view(game.id);
+}
+
+function renderAboutPage(){
+    $("#gameList").empty();
+    
+    var text = '<div class="container">';
+    
+    text += '<div class="container">';
+    text += '<h2>"What Should I Play?"</h2>';
+    text += '<div style="text-align:left;"><h4>"What Should I Play?" is made for gamers who looks for other entertaining games and it enables gamers run their Steam games directly on our website.</h4></div>';
+    text += '</div>'
+    
+    text += '<div class="container">';
+    text += '<h2>Instructions</h2>'
+    text += '</div>';
+    
+    text += '</div>';
+    
+    $("#gameList").append(text);
+}
+
+function renderContactPage(){
+    $("#gameList").empty();
+    
+    var text = '<div class="container">';
+    text += '<h2>Contact Us</h2>';
+    text += '<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3312.409156782101!2d-117.88568918487645!3d33.87911483428126!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80dcd5ce3d37c98f%3A0xfd990b1909bca0aa!2s800+N+State+College+Blvd%2C+Fullerton%2C+CA+92831!5e0!3m2!1sen!2sus!4v1462864077595" width="600" height="450" frameborder="0" style="border:0" allowfullscreen></iframe>';
+    text += '</div>';
+    
+    $("#gameList").append(text);
+    
 }
