@@ -2,6 +2,7 @@ var $currentUserSteam = "";
 var $currentUsername = "";
 var $allConcepts = "";
 var $allThemes = "";
+var $allGamesHome = "";
 
 $(document).ready(function() {
 	"use strict";
@@ -49,6 +50,10 @@ $(document).ready(function() {
 
 	$("#searchGenre").click(function() {
 		buildGenres();
+	});
+
+	$("#random").click(function() {
+		randomGame();
 	});
 
 	$("#searchConcept").click(function() {
@@ -491,6 +496,7 @@ function makeHome(){
 	$.get("http://localhost:3000/makeHome", function(data) {
 		$("#gameList").empty();
 		if(data.length != 0){
+			$allGamesHome = data;
 			data = shuffle(data);
 			var text = "";
 			text +='<div class="container">'
@@ -548,4 +554,9 @@ function view(id){
 			$("#gameList").append(text);
 		}
 	});
+}
+
+function randomGame(){
+	var game = _.sample($allGamesHome);
+	view(game.id);
 }

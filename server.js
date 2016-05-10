@@ -144,6 +144,9 @@ app.post('/match',function(req,res){
             if (body.results.steamAppID != null){
                 body.results.steamAppID = tempSteamID;
                 giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
+                console.log("matching");
+                console.log(error);
+                console.log(body.results);
             }
             res.sendStatus(200);
         });     
