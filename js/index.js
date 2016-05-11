@@ -17,6 +17,7 @@ $(document).ready(function() {
 	if($currentUserSteam == ""){
 		$("#logOut").hide();
 		$("#getList").hide();
+		$("#randomOwned").hide();
 	}
 
 	$("#gbUpdate").click(function() {
@@ -64,6 +65,10 @@ $(document).ready(function() {
 
 	$("#random").click(function() {
 		randomGame();
+	});
+
+	$("#randomOwned").click(function() {
+		randomGameOwn();
 	});
 
 	$("#searchConcept").click(function() {
@@ -122,6 +127,7 @@ $(document).ready(function() {
 		        $("#login").hide();
 		        $("#logOut").show();
 		        $("#getList").show();
+		        $("#randomOwned").show();
 		        var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername +'!</li>';
 		        $("#navbar").append($greeting);
 		        // showSteamGames(0, "time");
@@ -172,7 +178,7 @@ $(document).ready(function() {
 									"searchable": false,
 									"data": "img_logo_url",
 									"render":function ( data, type, row ) {
-										return '<a href=# onclick="view('+ row["giantBombId"]+')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+row["appid"]+'/'+data+'.jpg"/</a>';//game art';
+										return '<a href=# onclick="view('+ row["giantBombID"]+')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/'+row["appid"]+'/'+data+'.jpg"/</a>';//game art';
 									}
 								},
 								{
@@ -249,6 +255,8 @@ $(document).ready(function() {
 	$("#logOut").click(function() {
 	    $currentUsername = "";
 	    $currentUserSteam = "";
+	    $usersGames = "";
+
         $("#signup").show();
         $("#signin").show();
         $("#login").show();
@@ -256,6 +264,7 @@ $(document).ready(function() {
         $("#getList").hide();
 	    $("#greeting").remove();
 	    $("#gameList").empty();
+	    $("#randomOwned").hide();
 	    makeHome();
   	});
       
@@ -735,11 +744,18 @@ function view(id){
 }
 
 function randomGame(){
-	var game = "";
-	do
-		game = _.sample($usersGames);
-	while(game.giantBombID == 0);
-	view(game.giantBombID);
+		var game = _.sample($allGamesHome);
+		view(game.id);
+}
+
+function randomGameOwn(){
+	if($currentUserSteam != ""){
+		var game = "";
+		do
+			game = _.sample($usersGames);
+		while(game.giantBombID == 0);
+		view(game.giantBombID);
+	}
 }
 
 function renderAboutPage(){
