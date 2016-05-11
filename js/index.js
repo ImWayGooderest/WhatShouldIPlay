@@ -63,6 +63,10 @@ $(document).ready(function() {
 		buildGenres();
 	});
 
+	$("#searchDeveloper").click(function() {
+		buildDeveloper();
+	});
+
 	$("#random").click(function() {
 		randomGame();
 	});
@@ -171,6 +175,7 @@ $(document).ready(function() {
 						$('#gameTable').DataTable( {
 							"processing": true,
 							"serverSide": false,
+							"order": [[4,"desc"]],
 							"data": $usersGames,
 							"columnDefs": [
 								{
@@ -303,6 +308,38 @@ function buildGenres(){
 				var noSingleQ = data[i].replace(/'/g, "\\\'");
 				text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block">'+data[i]+'</button></a>'
 				if (((i+1)%5) == 0){
+					text += '<tr>'
+				}
+			}
+			$("#gameList").append(text);
+		}				
+	});
+}
+
+function buildDeveloper(){
+	$("#gameList").empty();
+
+	$.get("http://localhost:3000/getDevelopers", function(data) {
+		if(data.length != 0){
+			data = _.sortBy(data);
+			var text = '<div class="container">';
+
+			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Developer</h1></div>'
+			text += '<table class="table"><tbody>'
+			text += '<tr>'
+			var toggle = false;
+			for(var i = 0; i < data.length; i++){
+				if(toggle){
+					var color = 'btn-info';
+					toggle = false;
+				}
+				else{
+					var color = 'btn-danger';
+					toggle = true;
+				}
+				var noSingleQ = data[i].replace(/'/g, "\\\'");
+				text += '<td><button onclick="searchDeveloper(\''+noSingleQ+'\')" type="button" class="btn '+color+' btn-lg btn-block">'+data[i]+'</button></a>'
+				if (((i+1)%3) == 0){
 					text += '<tr>'
 				}
 			}
@@ -574,6 +611,29 @@ function searchGenre(genre){
 	});
 }
 
+function searchDeveloper(developers){
+	$.post("http://localhost:3000/searchDevelopers", {"developer": developers}, function(data) {
+		$("#gameList").empty();
+		if(data.length != 0){
+			data = shuffle(data);
+			var text = '<h1 style="color:#dd4814">Genre: '+developers+'</h1><br><table class="table text-center table-hover">';
+					text += '<thead><tr><th class="text-center">Game Art</th>';
+					text += '<th class="text-center">Giant Bomb ID</th>';
+					text += '<th class="text-center">Title</th>';
+					text += '<th class="text-center">Description</th>';
+					text += '<th class="text-center">Launch Game</th>';
+			for(var i = 0; i< data.length; i++){
+				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
+				text += '<td>'+data[i].id;
+				text += '<td>'+data[i].name;
+				text += '<td>'+data[i].deck;
+				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+			}
+			$("#gameList").append(text);
+		}
+	});
+}
+
 function searchTheme(theme){
 	$.post("http://localhost:3000/searchTheme", {"theme": theme}, function(data) {
 		$("#gameList").empty();
@@ -688,6 +748,21 @@ function view(id){
 			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">'+data[0].name+'';
 			text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="'+data[0].image.super_url+'" title="'+data[0].name+'">';
 			text += '<li class="list-group-item"><a href="steam://run/'+data[0].steamAppID+'"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>'
+			
+			if(data[0].developers != null){
+				text += '<li class="list-group-item"><h3>Developers</h3>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var x = 0; x < data[0].developers.length; x++)
+				{
+					var noSingleQ = data[0].developers[x].name.replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchDeveloper(\''+noSingleQ+'\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">'+data[0].developers[x].name+'</button></a>'
+					if (((x+1)%5) == 0){
+						text += '<tr>'
+					}
+				}
+				text += '</table></li>'
+			}
 
 			if(data[0].genres != null){
 				text += '<li class="list-group-item"><h3>Genres</h3>'
