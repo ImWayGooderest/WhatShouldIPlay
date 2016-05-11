@@ -3,6 +3,7 @@ var $currentUsername = "";
 var $allConcepts = "";
 var $allThemes = "";
 var $allGamesHome = "";
+var $usersGames = "";
 
 $(document).ready(function() {
 	"use strict";
@@ -146,7 +147,7 @@ $(document).ready(function() {
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
 				$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
 					if(data.length != 0){
-						var dataSet = data[0]["games"];
+						$usersGames = data[0]["games"];
 						$("#gameList").empty().append(
 							$currentUsername+'\'s Steam Games (Count: '+data[0].games.length+'):\
 							<table id="gameTable" class="text-center display">\
@@ -164,7 +165,7 @@ $(document).ready(function() {
 						$('#gameTable').DataTable( {
 							"processing": true,
 							"serverSide": false,
-							"data": dataSet,
+							"data": $usersGames,
 							"columnDefs": [
 								{
 									"targets": [ 0 ],
@@ -192,9 +193,9 @@ $(document).ready(function() {
 										else {
 											text += 'None Found.<br>'
 										}
-										text += '<label id="table' + data["appid"] + '" for="' + data["appid"] + '"><small>Enter Giant Bomb ID: </small></label><input id="input' + data["appid"] + '" type="text" class="form-control input-sm" value="' + data + '" id="gbID">';
-										text += '<button onclick="bestMatch(\'' + data["name"] + '\',' + data["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
-										text += '<button onclick="match(' + data["appid"] + ')"	type="button" class="btn btn-primary btn-sm">Submit ID</button>';
+										text += '<label id="table' + row["appid"] + '" for="' + row["appid"] + '"><small>Enter Giant Bomb ID: </small></label><input id="input' + row["appid"] + '" type="text" class="form-control input-sm" value="' + data + '" id="gbID">';
+										text += '<button onclick="bestMatch(\'' + row["name"] + '\',' + row["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
+										text += '<button onclick="match(' + row["appid"] + ')"	type="button" class="btn btn-primary btn-sm">Submit ID</button>';
 										return text;
 									}
 								},
@@ -734,8 +735,11 @@ function view(id){
 }
 
 function randomGame(){
-	var game = _.sample($allGamesHome);
-	view(game.id);
+	var game = "";
+	do
+		game = _.sample($usersGames);
+	while(game.giantBombID == 0);
+	view(game.giantBombID);
 }
 
 function renderAboutPage(){
