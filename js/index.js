@@ -207,7 +207,25 @@ $(document).ready(function() {
 								{
 									"targets": [ 4 ],
 									"searchable": false,
-									"data": "playtime_forever"
+									"data": "playtime_forever",
+									"render":{
+										"display":function ( data, type, row ) {
+											// if(type == "sort"){
+											// 	return data;
+											// } else
+											if(data != 0) {
+												var days = Math.floor(data/1440);
+												var remainingMinutes= data%1440;
+												var hours = Math.floor(remainingMinutes/60);
+												var minutes = remainingMinutes%60;
+												return days + ' days, ' + hours + ' hours, ' + minutes + ' minutes';
+											} else{
+												return "Never Played";
+											}
+											// return data;
+										},
+										"filter": "playtime_forever"
+									}
 								},
 								{
 									"targets": [ 5 ],
