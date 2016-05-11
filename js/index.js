@@ -141,13 +141,15 @@ $(document).ready(function() {
 	function showSteamGames() {
 		$("#gameList").empty();
 		if($currentUserSteam != ""){
+			var temp = "Building Steam List. Please wait, This can take a few minutes...";
+			$('#gameList').append(temp);
 			$.post("http://localhost:3000/update", { "steamID": $currentUserSteam}, function(data) {
 				$.post("http://localhost:3000/getSteamList", { "steamID": $currentUserSteam}, function(data) {
 					if(data.length != 0){
 						var dataSet = data[0]["games"];
 						$("#gameList").empty().append(
 							$currentUsername+'\'s Steam Games (Count: '+data[0].games.length+'):\
-							<table id="gameTable" class="table text-center table-hover"">\
+							<table id="gameTable" class="text-center display">\
                 <thead>\
                     <tr>\
                       <th class="text-center">Game Art</th>\
@@ -218,7 +220,7 @@ $(document).ready(function() {
 												var remainingMinutes= data%1440;
 												var hours = Math.floor(remainingMinutes/60);
 												var minutes = remainingMinutes%60;
-												return days + ' days, ' + hours + ' hours, ' + minutes + ' minutes';
+												return days + ' days,<br> ' + hours + ' hours,<br> ' + minutes + ' minutes';
 											} else{
 												return "Never Played";
 											}
@@ -594,7 +596,7 @@ function searchConcept(concept){
 
 	if(concept == "Games That Ask You to Press Start But Will Accept Other Buttons")
 	{
-		concept = 'Games That Ask You to Press "Start" But Will Accept Other Buttons';
+		concept = 'Games That Ask You to \"Press Start\" But Will Accept Other Buttons';
 	}
 
 	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
@@ -676,6 +678,53 @@ function view(id){
 			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">'+data[0].name+'';
 			text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="'+data[0].image.super_url+'" title="'+data[0].name+'">';
 			text += '<li class="list-group-item"><a href="steam://run/'+data[0].steamAppID+'"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>'
+
+			if(data[0].genres != null){
+				text += '<li class="list-group-item"><h3>Genres</h3>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var x = 0; x < data[0].genres.length; x++)
+				{
+					var noSingleQ = data[0].genres[x].name.replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchGenre(\''+noSingleQ+'\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">'+data[0].genres[x].name+'</button></a>'
+					if (((x+1)%5) == 0){
+						text += '<tr>'
+					}
+				}
+				text += '</table></li>'
+			}
+
+			if(data[0].themes != null){
+				text += '<li class="list-group-item"><h3>Themes</h3>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var x = 0; x < data[0].themes.length; x++)
+				{
+					var noSingleQ = data[0].themes[x].name.replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchTheme(\''+noSingleQ+'\')" type="button" class="btn btn-success btn-lg btn-group btn-block">'+data[0].themes[x].name+'</button></a>'
+					if (((x+1)%5) == 0){
+						text += '<tr>'
+					}
+				}
+				text += '</table></li>'
+			}
+
+			if(data[0].concepts != null){
+				text += '<li class="list-group-item"><h3>Concepts</h3>'
+				text += '<table class="table"><tbody>'
+				text += '<tr>'
+				for(var x = 0; x < data[0].concepts.length; x++)
+				{
+					var noSingleQ = data[0].concepts[x].name.replace(/'/g, "\\\'");
+					text += '<td><button onclick="searchConcept(\''+noSingleQ+'\')" type="button" class="btn btn-warning btn-sm btn-group btn-block">'+data[0].concepts[x].name+'</button></a>'
+					if (((x+1)%3) == 0){
+						text += '<tr>'
+					}
+				}
+				text += '</table></li>'
+			}
+
+
 			text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
 			text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-'+data[0].id+'/" height="600" width="100%"></iframe>'
 			text += '</ul>'

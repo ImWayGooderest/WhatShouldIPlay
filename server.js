@@ -122,9 +122,7 @@ function updateStoGB(tempSteam, gameCount, res){
 function bestMatch(steamName, res){
     var noSpace = steamName.replace(/ /g,"+");
     var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=game';
-    console.log(url);
     request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
-        console.log(body.results[0].id);
         res.json({'appID': body.results[0].id});
     });
 }
@@ -139,25 +137,6 @@ app.post('/getSteamList',function(req,res){
     });
 });
 
-//app.post('/gbAll',function(req,res){
-//    var offset = 210;    
-//    for(var x = 0; x < offset; x ++){
-//       var url = "http://www.giantbomb.com/api/games/?format=json&api_key="+process.env.GB_API_KEY+"&filter=platforms:94&offset="+x;
-//        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
-//            if (!error && response.statusCode === 200) {
-//                for(var i = 0; i < body.number_of_page_results; i ++){
-//                    giantBombDatabase.update(body.results[i].name,body.results[i], {upsert: true});
-//                    console.log("Offset: "+x+". Updating Game "+body.results[i].name);
-//                }
-//            }
-//            else{
-//                console.log("ERROR:"+error);
-//            }
-//        });
-//    }
-//
-//});
-
 app.post('/match',function(req,res){
     tempSteamID = req.body.steamAppID;
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
@@ -166,9 +145,6 @@ app.post('/match',function(req,res){
             if (body.results.steamAppID != null){
                 body.results.steamAppID = tempSteamID;
                 giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
-                console.log("matching");
-                console.log(error);
-                console.log(body.results);
             }
             res.sendStatus(200);
         });     
