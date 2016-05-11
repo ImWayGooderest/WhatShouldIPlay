@@ -26,6 +26,7 @@ $(document).ready(function() {
 		$("#signinButton").hide();
 		$("#registerButton").show();
 		$("#inputDIVSteamID").show();
+		$("#inputDIVSteamName").show();
 		$("#registerSignin-title").empty().append("Sign Up");
 		$("#registerSignIn").modal();
 		$("#errorMsg2").text("");
@@ -35,9 +36,17 @@ $(document).ready(function() {
 		$("#registerButton").hide();
 		$("#signinButton").show();
 		$("#inputDIVSteamID").hide();
+		$("#inputDIVSteamName").hide();
 		$("#registerSignin-title").empty().append("Sign In");
 		$("#registerSignIn").modal();
 		$("#errorMsg2").text("");
+	});
+
+	$("#lookupButton").click(function() {
+		var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function(v) {return [v.name, v.value];} ));
+		$.post("http://localhost:3000/lookupID64", {"steamName": registrationData.steamName}, function(data) {
+			$("#inputSteamID").val(data[0]);
+		});
 	});
 
 	$("#home").click(function() {

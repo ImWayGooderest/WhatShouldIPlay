@@ -94,19 +94,25 @@
                     <p class="bg-danger" id="errorMsg2"></p>
                     <form role="form" id="registerSignIn-form">
                         <div class="form-group">
-                            <label for="inputEmail">Email Address</label>
+                            <label for="inputEmail">Username (Required)</label>
                             <input type="email" class="form-control"
-                                         id="inputEmail" placeholder="Enter Email" name="email"/>
+                                         id="inputEmail" placeholder="Enter Username" name="email"/>
                         </div>
                         <div class="form-group">
-                            <label for="inputPassword">Password</label>
+                            <label for="inputPassword">Password (Required)</label>
                             <input type="password" class="form-control"
                                          id="inputPassword" placeholder="Password" name="password"/>
                         </div>
+                        <div id="inputDIVSteamName"class="form-group">
+                            <label for="inputSteamName">Steam Name</label>
+                            <input type="steamName" class="form-control"
+                                         id="inputSteamName" placeholder="Steam Name" name="steamName"/>
+                            <button id="lookupButton" type="button" class="btn btn-default">Lookup Steam ID</button>
+                        </div>
                         <div id="inputDIVSteamID"class="form-group">
-                            <label for="inputSteamID">Steam ID</label>
+                            <label for="inputSteamID">Steam ID (Required)</label>
                             <input type="steamID" class="form-control"
-                                         id="inputSteamID" placeholder="Steam ID" name="steamID"/>
+                                         id="inputSteamID" placeholder='Use "Lookup Steam ID" Button Above If You Do Not Know Your Steam ID' name="steamID"/>
                         </div>
                     </form>
                 </div>
