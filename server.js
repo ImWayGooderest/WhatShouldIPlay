@@ -60,7 +60,12 @@ app.post('/signin',function(req,res){
 });
 
 app.post('/lookupID64',function(req,res){
-    var url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1'
+    var url1 = "";
+    if(!isNaN(req.body.steamName)) {
+        url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
+    } else {
+        url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
+    }
     request({url: url1, json: true}, function (error, response, body) {
         parseString(body, function (err, result) {
             if(result.profile != null){
