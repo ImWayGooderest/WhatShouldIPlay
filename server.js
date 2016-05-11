@@ -63,7 +63,13 @@ app.post('/lookupID64',function(req,res){
     var url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1'
     request({url: url1, json: true}, function (error, response, body) {
         parseString(body, function (err, result) {
-            res.json(result.profile.steamID64);
+            if(result.profile != null){
+                res.json(result.profile.steamID64);
+            }
+            else{
+                res.json(["Not Found"]);
+            }
+            
         });
     });
 });
