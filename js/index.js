@@ -596,70 +596,42 @@ function bestMatch(name, steamAppID){
 function searchGenre(genre){
 	$.post("http://localhost:3000/searchGenre", {"genre": genre}, function(data) {
 		$("#gameList").empty();
-		if(data.length != 0){
-			data = shuffle(data);
-			var text = '<h1 style="color:#dd4814">Genre: '+genre+'</h1><br><table class="table text-center table-hover">';
-					text += '<thead><tr><th class="text-center">Game Art</th>';
-					text += '<th class="text-center">Giant Bomb ID</th>';
-					text += '<th class="text-center">Title</th>';
-					text += '<th class="text-center">Description</th>';
-					text += '<th class="text-center">Launch Game</th>';
-			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
-				text += '<td>'+data[i].id;
-				text += '<td>'+data[i].name;
-				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
-			}
-			$("#gameList").append(text);
-		}
+		renderTable(data, genre, "Genre")
 	});
 }
 
+function renderTable(data, name, type) {
+	type = type + ": ";
+	var text = '<h1 style="color:#dd4814">' + type + name + '</h1><br><table class="table text-center table-hover">';
+	if(data.length != 0) {
+		data = shuffle(data);
+
+		text += '<thead><tr><th class="text-center">Game Art</th>';
+		text += '<th class="text-center">Giant Bomb ID</th>';
+		text += '<th class="text-center">Title</th>';
+		text += '<th class="text-center">Description</th>';
+		text += '<th class="text-center">Launch Game</th>';
+		for (var i = 0; i < data.length; i++) {
+			text += '<tbody><tr><td><a href=# onclick="view(' + data[i].id + ')"><img class="img box-shadow--6dp" src="' + data[i].image.small_url + '" width="300"></a>';
+			text += '<td>' + data[i].id;
+			text += '<td>' + data[i].name;
+			text += '<td>' + data[i].deck;
+			text += '<td><a href="steam://run/' + data[i].steamAppID + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+		}
+	}
+	$("#gameList").append(text);
+}
 function searchDeveloper(developers){
 	$.post("http://localhost:3000/searchDevelopers", {"developer": developers}, function(data) {
 		$("#gameList").empty();
-		if(data.length != 0){
-			data = shuffle(data);
-			var text = '<h1 style="color:#dd4814">Developer: '+developers+'</h1><br><table class="table text-center table-hover">';
-					text += '<thead><tr><th class="text-center">Game Art</th>';
-					text += '<th class="text-center">Giant Bomb ID</th>';
-					text += '<th class="text-center">Title</th>';
-					text += '<th class="text-center">Description</th>';
-					text += '<th class="text-center">Launch Game</th>';
-			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
-				text += '<td>'+data[i].id;
-				text += '<td>'+data[i].name;
-				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
-			}
-			$("#gameList").append(text);
-		}
+		renderTable(data, developers, "Developer");
 	});
 }
 
 function searchTheme(theme){
 	$.post("http://localhost:3000/searchTheme", {"theme": theme}, function(data) {
 		$("#gameList").empty();
-		var text = '<h1 style="color:#dd4814">Theme: '+theme+'</h1><br><table class="table text-center table-hover">';
-		if(data.length != 0){
-			data = shuffle(data);			
-			text += '<thead><tr><th class="text-center">Game Art</th>';
-			text += '<th class="text-center">Giant Bomb ID</th>';
-			text += '<th class="text-center">Title</th>';
-			text += '<th class="text-center">Description</th>';
-			text += '<th class="text-center">Launch Game</th>';
-			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
-				text += '<td>'+data[i].id;
-				text += '<td>'+data[i].name;
-				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
-			}
-			
-		}
-		$("#gameList").append(text);
+		renderTable(data, theme, "Theme")
 	});
 }
 
@@ -676,24 +648,7 @@ function searchConcept(concept){
 
 	$.post("http://localhost:3000/searchConcept", {"concept": concept}, function(data) {
 		$("#gameList").empty();
-		var text = '<h1 style="color:#dd4814">Concept: '+concept+'</h1><br><table class="table text-center table-hover">';
-		if(data.length != 0){
-			data = shuffle(data);			
-			text += '<thead><tr><th class="text-center">Game Art</th>';
-			text += '<th class="text-center">Giant Bomb ID</th>';
-			text += '<th class="text-center">Title</th>';
-			text += '<th class="text-center">Description</th>';
-			text += '<th class="text-center">Launch Game</th>';
-			for(var i = 0; i< data.length; i++){
-				text += '<tbody><tr><td><a href=# onclick="view('+data[i].id+')"><img class="img box-shadow--6dp" src="'+data[i].image.small_url+'" width="300"></a>';
-				text += '<td>'+data[i].id;
-				text += '<td>'+data[i].name;
-				text += '<td>'+data[i].deck;
-				text += '<td><a href="steam://run/'+data[i].steamAppID+'"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
-			}
-			
-		}
-		$("#gameList").append(text);
+		renderTable(data, concept, "Concept")
 	});
 }
 
