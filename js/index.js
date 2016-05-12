@@ -34,6 +34,11 @@ $(document).ready(function() {
 		$("#errorMsg2").text("");
 	});
 
+	$("#helpButton").click(function() {
+		$("#registerSignIn").modal("hide");
+			renderAboutPage();
+		});
+
 	$("#signin").click(function() {
 		$("#registerButton").hide();
 		$("#signinButton").show();
@@ -700,7 +705,7 @@ function makeHome(){
 			data = shuffle(data);
 			var text = "";
 			text +='<div class="container">'
-  			text +='<br>'
+			text +='<br>'
 			text +='<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">'
 			text +='<div class="carousel-inner" role="listbox">'
 			text +='<div class="item active">'
@@ -835,19 +840,20 @@ function randomGameOwn(){
 
 function renderAboutPage(){
     $("#gameList").empty();
-    
-    var text = '<div class="container">';
-    
-    text += '<div class="container">';
-    text += '<h2>"What Should I Play?"</h2>';
-    text += '<div style="text-align:left;"><h4>"What Should I Play?" is a website made for gamers who are looking for other entertaining games.<br>It enables gamers to run their Steam games directly from our website.</h4></div>';
-    text += '</div>'
-    
-    text += '<div class="container">';
-    text += '<h2>Instructions</h2>'
-    text += '</div>';
-    
-    text += '</div>';
+    var text = '<div class="container">\
+							<h2>Instructions</h2>\
+							To find your Steam Community Name/Steam ID<br>\
+							1. Visit  http://steamcommunity.com/<br>\
+							<img src="/images/steam1.jpg" width="100%"><br>\
+							2. Under “FIND PEOPLE” Type in your Steam username and click on the magnifying glass or hit enter.<br>\
+							<img src="/images/steam2.jpg"><br>\
+							3. Find your Steam account from the list of returned results. If you have previously set a Custom Steam Community URL, your Steam Community Name will appear as the white part of your Custom URL.  If no custom URL is set, continue to step 4<br>\
+							<img src="/images/steam3.jpg"><br>\
+							4. If you have not set a Custom URL, you’ll have to find your Steam ID by clicking your Steam account from the list. (In this example, it is Furbe).<br>\
+							<img src="/images/steam4.jpg"><br>\
+							5. Your Steam ID is at the end of your profile URL. (In this example, the user’s Steam ID would be 76561197960439684)<br>\
+						</div>';
+
     
     $("#gameList").append(text);
 }
