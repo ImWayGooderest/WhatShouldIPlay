@@ -621,7 +621,7 @@ function searchDeveloper(developers){
 		$("#gameList").empty();
 		if(data.length != 0){
 			data = shuffle(data);
-			var text = '<h1 style="color:#dd4814">Genre: '+developers+'</h1><br><table class="table text-center table-hover">';
+			var text = '<h1 style="color:#dd4814">Developer: '+developers+'</h1><br><table class="table text-center table-hover">';
 					text += '<thead><tr><th class="text-center">Game Art</th>';
 					text += '<th class="text-center">Giant Bomb ID</th>';
 					text += '<th class="text-center">Title</th>';
