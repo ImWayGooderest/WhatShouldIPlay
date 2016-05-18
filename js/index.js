@@ -510,7 +510,7 @@ function searchGenre(genre) {
 
 function renderTable(data, name, type) {
 	type = type + ": ";
-	var text = '<h1 style="color:#dd4814">' + type + name + '</h1><br><table class="table text-center table-hover">';
+	var text = '<h1 style="color:#dd4814">' + type + name + '</h1><br><table width="100%" class="table text-center table-hover" id="filteredTable">';
 	if (data.length != 0) {
 		data = shuffle(data);
 
@@ -519,15 +519,55 @@ function renderTable(data, name, type) {
 		text += '<th class="text-center">Title</th>';
 		text += '<th class="text-center">Description</th>';
 		text += '<th class="text-center">Launch Game</th>';
-		for (var i = 0; i < data.length; i++) {
-			text += '<tbody><tr><td><a href=# onclick="view(' + data[i].id + ')"><img class="img box-shadow--6dp" src="' + data[i].image.small_url + '" width="300"></a>';
-			text += '<td>' + data[i].id;
-			text += '<td>' + data[i].name;
-			text += '<td>' + data[i].deck;
-			text += '<td><a href="steam://run/' + data[i].steamAppID + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
-		}
+		$("#gameList").append(text);
+		$('#filteredTable').DataTable({
+			"processing": true,
+			"serverSide": false,
+			"order": [
+				[4, "desc"]
+			],
+			"data": data,
+			"columnDefs": [{
+				"targets": [0],
+				"searchable": false,
+				"data": "image.small_url",
+				"render": function (data, type, row) {
+					return '<a href=# onclick="view(' + row["id"] + ')"><img class="img box-shadow--6dp" src="' + data + '" width="300"></a>'; //game art';
+				}
+			},  {
+				"targets": [1],
+				"searchable": false,
+				"data": "id"
+			}, {
+				"targets": [2],
+				"data": "name",
+				"render": function (data, type, row) {
+					var nameNoSpace = data.replace(/ /g, "+");
+					return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
+				}
+			}, {
+				"targets": [3],
+				"searchable": false,
+				"data": "deck"
+			}, {
+				"targets": [4],
+				"searchable": false,
+				"data": "steamAppID",
+				"render": function (data, type, row) {
+					return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+				}
+
+			}]
+		});
+		// for (var i = 0; i < data.length; i++) {
+		// 	text += '<tbody><tr><td><a href=# onclick="view(' + data[i].id + ')"><img class="img box-shadow--6dp" src="' + data[i].image.small_url + '" width="300"></a>';
+		// 	text += '<td>' + data[i].id;
+		// 	text += '<td>' + data[i].name;
+		// 	text += '<td>' + data[i].deck;
+		// 	text += '<td><a href="steam://run/' + data[i].steamAppID + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+		// }
 	}
-	$("#gameList").append(text);
+
 }
 
 function searchDeveloper(developers) {
