@@ -310,9 +310,9 @@ function buildGenres() {
 			data = _.sortBy(data);
 			var text = '<div class="container">';
 
-			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Genre</h1></div>'
-			text += '<table class="table"><tbody>'
-			text += '<tr>'
+			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Genre</h1></div>';
+			text += '<table class="table"><tbody>';
+			text += '<tr>';
 			var toggle = false;
 			for (var i = 0; i < data.length; i++) {
 				if (toggle) {
@@ -323,9 +323,9 @@ function buildGenres() {
 					toggle = true;
 				}
 				var noSingleQ = data[i].replace(/'/g, "\\\'");
-				text += '<td><button onclick="searchGenre(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block">' + data[i] + '</button></a>'
+				text += '<td><button onclick="searchGenre(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block">' + data[i] + '</button></a>';
 				if (((i + 1) % 5) == 0) {
-					text += '<tr>'
+					text += '<tr>';
 				}
 			}
 			$("#gameList").append(text);
@@ -341,9 +341,9 @@ function buildDeveloper() {
 			data = _.sortBy(data);
 			var text = '<div class="container">';
 
-			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Developer</h1></div>'
-			text += '<table class="table"><tbody>'
-			text += '<tr>'
+			text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Developer</h1></div>';
+			text += '<table class="table"><tbody>';
+			text += '<tr>';
 			var toggle = false;
 			for (var i = 0; i < data.length; i++) {
 				if (toggle) {
@@ -354,9 +354,9 @@ function buildDeveloper() {
 					toggle = true;
 				}
 				var noSingleQ = data[i].replace(/'/g, "\\\'");
-				text += '<td><button onclick="searchDeveloper(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block">' + data[i] + '</button></a>'
+				text += '<td><button onclick="searchDeveloper(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block">' + data[i] + '</button></a>';
 				if (((i + 1) % 3) == 0) {
-					text += '<tr>'
+					text += '<tr>';
 				}
 			}
 			$("#gameList").append(text);
@@ -368,9 +368,9 @@ function buildConcepts(sort) {
 	$("#gameList").empty();
 	var text = '<div class="container">';
 
-	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Concept</h1></div>'
-	text += '<table class="table"><tbody>'
-	text += '<tr>'
+	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Concept</h1></div>';
+	text += '<table class="table"><tbody>';
+	text += '<tr>';
 
 	if (sort != "all") {
 		if (sort == "#") {
@@ -388,7 +388,7 @@ function buildConcepts(sort) {
 
 	pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
 
-	text += '<nav><ul class="pagination pagination-sm">'
+	text += '<nav><ul class="pagination pagination-sm">';
 
 	for (var x = 0; x < pages.length; x++) {
 		if (pages[x] == sort) {
@@ -398,7 +398,7 @@ function buildConcepts(sort) {
 		}
 	}
 	text += '<li><a href="#" onclick="buildConcepts(\'all\')">All</a></li>';
-	text += '</ul></nav>'
+	text += '</ul></nav>';
 	var toggle = false;
 	for (var i = 0; i < filData.length; i++) {
 		var noSingleQ = filData[i].replace(/'/g, "\\\'");
@@ -410,9 +410,9 @@ function buildConcepts(sort) {
 			var color = 'btn-warning';
 			toggle = true;
 		}
-		text += '<td><button onclick="searchConcept(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn btn-block" title="' + filData[i] + '">' + filData[i] + '</button></a>'
+		text += '<td><button onclick="searchConcept(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn btn-block" title="' + filData[i] + '">' + filData[i] + '</button></a>';
 		if (((i + 1) % 3) == 0) {
-			text += '<tr>'
+			text += '<tr>';
 		}
 	}
 	$("#gameList").append(text);
@@ -422,9 +422,9 @@ function buildThemes(sort) {
 	$("#gameList").empty();
 	var text = '<div class="container">';
 
-	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Theme</h1></div>'
-	text += '<table class="table"><tbody>'
-	text += '<tr>'
+	text += '<div class="col-lg-12"><h1 style="color:#dd4814" class="page-header">Choose a Theme</h1></div>';
+	text += '<table class="table"><tbody>';
+	text += '<tr>';
 
 	if (sort != "all") {
 		if (sort == "#") {
@@ -442,7 +442,7 @@ function buildThemes(sort) {
 
 	pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
 
-	text += '<nav><ul class="pagination pagination-sm">'
+	text += '<nav><ul class="pagination pagination-sm">';
 
 	for (var x = 0; x < pages.length; x++) {
 		if (pages[x] == sort) {
@@ -452,7 +452,7 @@ function buildThemes(sort) {
 		}
 	}
 	text += '<li><a href="#" onclick="buildThemes(\'all\')">All</a></li>';
-	text += '</ul></nav>'
+	text += '</ul></nav>';
 	var toggle = false;
 	for (var i = 0; i < filData.length; i++) {
 		var noSingleQ = filData[i].replace(/'/g, "\\\'");
@@ -464,9 +464,9 @@ function buildThemes(sort) {
 			var color = 'btn-primary';
 			toggle = true;
 		}
-		text += '<td><button onclick="searchTheme(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block" title="' + filData[i] + '">' + filData[i] + '</button></a>'
+		text += '<td><button onclick="searchTheme(\'' + noSingleQ + '\')" type="button" class="btn ' + color + ' btn-lg btn-block" title="' + filData[i] + '">' + filData[i] + '</button></a>';
 		if (((i + 1) % 3) == 0) {
-			text += '<tr>'
+			text += '<tr>';
 		}
 	}
 	$("#gameList").append(text);
@@ -476,7 +476,7 @@ function match($appID) {
 	if ($appID != "") {
 		var temp = $("#input" + $appID).val();
 		$("#table" + $appID).empty();
-		var text = '<a href="http://www.giantbomb.com/game/3030-' + temp + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+		var text = '<a href="http://www.giantbomb.com/game/3030-' + temp + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 		$("#table" + $appID).append(text);
 		$.post("http://localhost:3000/match", {
 			"steamAppID": parseInt($appID),
@@ -490,7 +490,7 @@ function bestMatch(name, steamAppID) {
 		"steamName": name
 	}, function (data) {
 		$("#table" + steamAppID).empty();
-		var text = '<a href="http://www.giantbomb.com/game/3030-' + data.appID + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>'
+		var text = '<a href="http://www.giantbomb.com/game/3030-' + data.appID + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 		$("#table" + steamAppID).append(text);
 		$.post("http://localhost:3000/match", {
 			"steamAppID": parseInt(steamAppID),
@@ -504,7 +504,7 @@ function searchGenre(genre) {
 		"genre": genre
 	}, function (data) {
 		$("#gameList").empty();
-		renderTable(data, genre, "Genre")
+		renderTable(data, genre, "Genre");
 	});
 }
 
@@ -524,7 +524,7 @@ function renderTable(data, name, type) {
 			text += '<td>' + data[i].id;
 			text += '<td>' + data[i].name;
 			text += '<td>' + data[i].deck;
-			text += '<td><a href="steam://run/' + data[i].steamAppID + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>'
+			text += '<td><a href="steam://run/' + data[i].steamAppID + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
 		}
 	}
 	$("#gameList").append(text);
@@ -572,35 +572,35 @@ function makeHome() {
 			$allGamesHome = data;
 			data = shuffle(data);
 			var text = "";
-			text += '<div class="container">'
-			text += '<br>'
-			text += '<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">'
-			text += '<div class="carousel-inner" role="listbox">'
-			text += '<div class="item active">'
-			text += '<a href=# onclick="view(' + data[0].id + ')"><img src="' + data[0].image.super_url + '"></img></a>'
-			text += '<div class="carousel-caption">'
-			text += '<a href=# onclick="view(' + data[0].id + ')"><h3><span class="label label-default">' + data[0].name + '</span></h3>'
-			text += '</div>'
-			text += '</div>'
+			text += '<div class="container">';
+			text += '<br>';
+			text += '<div id="myCarousel" class="carousel slide" data-ride="carousel" data-interval="3000">';
+			text += '<div class="carousel-inner" role="listbox">';
+			text += '<div class="item active">';
+			text += '<a href=# onclick="view(' + data[0].id + ')"><img src="' + data[0].image.super_url + '"></a>';
+			text += '<div class="carousel-caption">';
+			text += '<a href=# onclick="view(' + data[0].id + ')"><h3><span class="label label-default">' + data[0].name + '</span></h3>';
+			text += '</div>';
+			text += '</div>';
 			for (var i = 1; i < 108; i++) {
 				if (data[i].image != null) {
-					text += '<div class="item">'
-					text += '<a href=# onclick="view(' + data[i].id + ')"><img src="' + data[i].image.super_url + '"></img></a>'
-					text += '<div class="carousel-caption">'
-					text += '<a href=# onclick="view(' + data[i].id + ')"><h3><span class="label label-default">' + data[i].name + '</span></h3>'
-					text += '</div>'
-					text += '</div>'
+					text += '<div class="item">';
+					text += '<a href=# onclick="view(' + data[i].id + ')"><img src="' + data[i].image.super_url + '"></a>';
+					text += '<div class="carousel-caption">';
+					text += '<a href=# onclick="view(' + data[i].id + ')"><h3><span class="label label-default">' + data[i].name + '</span></h3>';
+					text += '</div>';
+					text += '</div>';
 				}
 			}
-			text += '</div>'
-			text += '<a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">'
-			text += '<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>'
-			text += '<span class="sr-only">Previous</span>'
-			text += '</a>'
-			text += '<a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">'
-			text += '<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>'
-			text += '<span class="sr-only">Next</span>'
-			text += '</a>'
+			text += '</div>';
+			text += '<a class="left carousel-control" href="#myCarousel" role="button" data-slide="prev">';
+			text += '<span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>';
+			text += '<span class="sr-only">Previous</span>';
+			text += '</a>';
+			text += '<a class="right carousel-control" href="#myCarousel" role="button" data-slide="next">';
+			text += '<span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>';
+			text += '<span class="sr-only">Next</span>';
+			text += '</a>';
 			text += '</div>';
 
 			for (var i = 0; i < 108; i++) {
@@ -620,68 +620,68 @@ function view(id) {
 			$("#gameList").empty();
 			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">' + data[0].name + '';
 			text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="' + data[0].image.super_url + '" title="' + data[0].name + '">';
-			text += '<li class="list-group-item"><a href="steam://run/' + data[0].steamAppID + '"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>'
+			text += '<li class="list-group-item"><a href="steam://run/' + data[0].steamAppID + '"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>';
 
 			if (data[0].developers != null) {
-				text += '<li class="list-group-item"><h3>Developers</h3>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
+				text += '<li class="list-group-item"><h3>Developers</h3>';
+				text += '<table class="table"><tbody>';
+				text += '<tr>';
 				for (var x = 0; x < data[0].developers.length; x++) {
 					var noSingleQ = data[0].developers[x].name.replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchDeveloper(\'' + noSingleQ + '\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">' + data[0].developers[x].name + '</button></a>'
+					text += '<td><button onclick="searchDeveloper(\'' + noSingleQ + '\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">' + data[0].developers[x].name + '</button></a>';
 					if (((x + 1) % 5) == 0) {
-						text += '<tr>'
+						text += '<tr>';
 					}
 				}
-				text += '</table></li>'
+				text += '</table></li>';
 			}
 
 			if (data[0].genres != null) {
-				text += '<li class="list-group-item"><h3>Genres</h3>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
+				text += '<li class="list-group-item"><h3>Genres</h3>';
+				text += '<table class="table"><tbody>';
+				text += '<tr>';
 				for (var x = 0; x < data[0].genres.length; x++) {
 					var noSingleQ = data[0].genres[x].name.replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchGenre(\'' + noSingleQ + '\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">' + data[0].genres[x].name + '</button></a>'
+					text += '<td><button onclick="searchGenre(\'' + noSingleQ + '\')" type="button" class="btn btn-danger btn-lg btn-group btn-block">' + data[0].genres[x].name + '</button></a>';
 					if (((x + 1) % 5) == 0) {
-						text += '<tr>'
+						text += '<tr>';
 					}
 				}
-				text += '</table></li>'
+				text += '</table></li>';
 			}
 
 			if (data[0].themes != null) {
-				text += '<li class="list-group-item"><h3>Themes</h3>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
+				text += '<li class="list-group-item"><h3>Themes</h3>';
+				text += '<table class="table"><tbody>';
+				text += '<tr>';
 				for (var x = 0; x < data[0].themes.length; x++) {
 					var noSingleQ = data[0].themes[x].name.replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchTheme(\'' + noSingleQ + '\')" type="button" class="btn btn-success btn-lg btn-group btn-block">' + data[0].themes[x].name + '</button></a>'
+					text += '<td><button onclick="searchTheme(\'' + noSingleQ + '\')" type="button" class="btn btn-success btn-lg btn-group btn-block">' + data[0].themes[x].name + '</button></a>';
 					if (((x + 1) % 5) == 0) {
-						text += '<tr>'
+						text += '<tr>';
 					}
 				}
-				text += '</table></li>'
+				text += '</table></li>';
 			}
 
 			if (data[0].concepts != null) {
-				text += '<li class="list-group-item"><h3>Concepts</h3>'
-				text += '<table class="table"><tbody>'
-				text += '<tr>'
+				text += '<li class="list-group-item"><h3>Concepts</h3>';
+				text += '<table class="table"><tbody>';
+				text += '<tr>';
 				for (var x = 0; x < data[0].concepts.length; x++) {
 					var noSingleQ = data[0].concepts[x].name.replace(/'/g, "\\\'");
-					text += '<td><button onclick="searchConcept(\'' + noSingleQ + '\')" type="button" class="btn btn-warning btn-sm btn-group btn-block">' + data[0].concepts[x].name + '</button></a>'
+					text += '<td><button onclick="searchConcept(\'' + noSingleQ + '\')" type="button" class="btn btn-warning btn-sm btn-group btn-block">' + data[0].concepts[x].name + '</button></a>';
 					if (((x + 1) % 3) == 0) {
-						text += '<tr>'
+						text += '<tr>';
 					}
 				}
-				text += '</table></li>'
+				text += '</table></li>';
 			}
 
 
 			text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
-			text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-' + data[0].id + '/" height="600" width="100%"></iframe>'
-			text += '</ul>'
+			text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-' + data[0].id + '/" height="600" width="100%"></iframe>';
+			text += '</ul>';
 			$("#gameList").append(text);
 		}
 	});
