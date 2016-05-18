@@ -140,7 +140,7 @@ app.post('/getSteamList',function(req,res){
 app.post('/match',function(req,res){
     tempSteamID = req.body.steamAppID;
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
-        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json'
+        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json';
         request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body){
             if (body.results.steamAppID != null){
                 body.results.steamAppID = tempSteamID;
