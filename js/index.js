@@ -140,9 +140,9 @@ $(document).ready(function () {
 			"username": signinData.email.toLowerCase(),
 			"password": signinData.password
 		}, function (data) {
-			if (data.length != 0) {
-				$currentUsername = data[0].username;
-				$currentUserSteam = data[0].steamID;
+			if (data.err === undefined) {
+				$currentUsername = data.username;
+				$currentUserSteam = data.steamID;
 
 				$("#registerSignIn").modal("hide");
 				$("#inputEmail").val("");
@@ -159,7 +159,7 @@ $(document).ready(function () {
 				// showSteamGames(0, "time");
 				showSteamGames();
 			} else {
-				$("#errorMsg2").text("Sign in failed. Account not found or wrong password!");
+				$("#errorMsg2").text(data.err);
 				$("#errorMsg2").effect("shake");
 			}
 		});
@@ -228,7 +228,7 @@ $(document).ready(function () {
 										text += 'None Found.<br>'
 									}
 									text += '<label id="table' + row["appid"] + '" for="' + row["appid"] + '"><small>Enter Giant Bomb ID: </small></label><input id="input' + row["appid"] + '" type="text" class="form-control input-sm" value="' + data + '" id="gbID">';
-									text += '<button onclick="bestMatch(\'' + row["name"] + '\',' + row["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
+									text += '<button onclick="bestMatch(\'' + row["name"].replace(/'/g, "\\\'") + '\',' + row["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
 									text += '<button onclick="match(' + row["appid"] + ')"	type="button" class="btn btn-primary btn-sm">Submit ID</button>';
 									return text;
 								}

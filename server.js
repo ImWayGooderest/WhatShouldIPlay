@@ -3,8 +3,11 @@ var dotenv = require('dotenv').config(),
     request = require("request"),
     http = require("http"),
     bodyParser = require('body-parser'),
-    app = express();
+    app = express(),
+    Cookies = require("cookies"),
+    bcrypt = require('bcrypt');
 
+const saltRounds = 10;
 var mongojs = require('mongojs');
 var parseString = require('xml2js').parseString;
 
@@ -38,9 +41,21 @@ app.use(bodyParser());
 //      
 // });
 
-app.post('/signup',function(req,res){ 
-    users.save(req.body);
-    res.sendStatus(200);
+app.post('/signup',function(req,res){
+    bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
+        if(err === undefined) {
+            req.body.password = hash;
+            users.save(req.body);
+            res.sendStatus(200);
+        } else {
+            console.log("ERROR:"+err);
+            res.sendStatus(500);
+            //TODO: send error message
+        }
+
+    });
+
+
 });
 
 app.post('/exists',function(req,res){
@@ -49,13 +64,26 @@ app.post('/exists',function(req,res){
             res.json(doc);
         }
     });
+
 });
 
 app.post('/signin',function(req,res){
-    users.find(req.body, function(err, doc){
-        if(doc != null){
-            res.json(doc);
-        }
+
+    users.find({"username": req.body.username}, function(err, doc){
+        if(doc.length > 0){
+
+            bcrypt.compare(req.body.password, doc[0].password, function(err, isMatching) {
+                if(isMatching == true) {
+                    var userInfo = {"username": doc[0].username, "steamID": doc[0].steamID};
+                    res.json(userInfo);
+                } else {
+                    res.json({"err": "Sign in failed. Account not found or wrong password!"});
+                }
+            });
+
+        } else {
+        res.json({"err": "Sign in failed. Account not found or wrong password!"});
+    }
     });
 });
 
