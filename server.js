@@ -4,7 +4,7 @@ var dotenv = require('dotenv').config(),
     http = require("http"),
     bodyParser = require('body-parser'),
     app = express(),
-    Cookies = require("cookies"),
+    cookieParser = require("cookie-parser"),
     bcrypt = require('bcrypt');
 
 const saltRounds = 10;
