@@ -1,143 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
-    <title>What Should I Play?</title>
-    <script src="js/jquery-2.0.3.min.js"></script>
-    <script src="js/jquery-ui.js"></script>
-    <!--https://github.com/coolaj86/knuth-shuffle license: Apache License Version 2.0, January 2004-->
-    <script src="js/shuffle.js"></script>
-    <!--https://bootswatch.com/united/ Made by Thomas Park. Contact him at thomas@bootswatch.com. Code released under the MIT License. Based on Bootstrap. Icons from Font Awesome. Web fonts from Google.-->
-    <script type="text/javascript" src="js/bootstrap.min.js"></script>
-    <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">    
-    <!--http://www.himpfen.com/shadow-effect-bootstrap-components/.-->
-    <link href="css/wsip.css" rel="stylesheet" type="text/css">
-    <script src="js/underscore-min.js"></script>
-    <script src="js/index.js"></script>
-    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.css"/>
-    <script type="text/javascript" src="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.js"></script>
-</head>
-<body>
-    <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+        <title>What Should I Play?</title>
+        <script src="js/jquery-2.0.3.min.js"></script>
+        <script src="js/jquery-ui.js"></script>
+        <!--https://github.com/coolaj86/knuth-shuffle license: Apache License Version 2.0, January 2004-->
+        <script src="js/shuffle.js"></script>
+        <!--https://bootswatch.com/united/ Made by Thomas Park. Contact him at thomas@bootswatch.com. Code released under the MIT License. Based on Bootstrap. Icons from Font Awesome. Web fonts from Google.-->
+        <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <!--http://www.himpfen.com/shadow-effect-bootstrap-components/.-->
+        <link href="css/wsip.css" rel="stylesheet" type="text/css">
+        <script src="js/underscore-min.js"></script>
+        <script src="js/index.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.css"/>
+        <script type="text/javascript" src="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.js"></script>
+    </head>
+    <body>
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <a class="navbar-brand" id="brand" href="#"><img src="/images/wsipLogoWhite.png" height="125%"></a>
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+                        <span class="sr-only">Toggle Navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                </div>
+
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav" id="navigationBar">
+                        <li class="active" id="home"><a href="#">Home</a></li>
+                        <li class="dropdown" id="login">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Login <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="signup">Sign Up!</a></li>
+                                <li><a href="#" id="signin">Sign In</a></li>
+                            </ul>
+                        </li>
+                        <li><a href="#" id="getList">My Steam List</a></li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Random <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="random">Random Game</a></li>
+                                <li><a href="#" id="randomOwned">Random Game I Own</a></li>
+                            </ul>
+
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Search <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="searchGenre">Search By Genre</a></li>
+                                <li><a href="#" id="searchTheme">Search By Theme</a></li>
+                                <li><a href="#" id="searchConcept">Search By Concept</a></li>
+                                <li><a href="#" id="searchDeveloper">Search By Developer</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown">
+                            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">About <span class="caret"></span></a>
+                            <ul class="dropdown-menu">
+                                <li><a href="#" id="about">Account Setup Instructions</a></li>
+                                <li><a href="#" id="contact">Contact Us</a></li>
+                            </ul>
+                        </li>
+
+                        <!--<li><a href="#" id="gbUpdate">Giant Bomb Update(Not Working)</a></li>-->
+                        <li><a href="#" id="logOut">Log Out</a></li>
+                    </ul>
+                    <div class="col-sm-3 col-md-3 pull-right">
+                        <form class="navbar-form" role="search">
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Search" name="srch-term" id="srch-term">
+                                <div class="input-group-btn">
+                                    <button class="btn btn-default" type="submit"><i class="glyphicon glyphicon-search"></i></button>
+                                </div>
+                            </div>
+                        </form>
+                </div>
+            </div>
+        </nav>
         <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" id="brand" href="#"><img src="/images/wsipLogoWhite.png" height="125%"></a>
-                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
-                    <span class="sr-only">Toggle Navigation</span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                    <span class="icon-bar"></span>
-                </button>
-            </div>
-
-            <div id="navbar" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav" id="navigationBar">
-                    <li class="active" id="home"><a href="#">Home</a></li>
-                    <li class="dropdown" id="login">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Login <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" id="signup">Sign Up!</a></li>
-                            <li><a href="#" id="signin">Sign In</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#" id="getList">My Steam List</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Random <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" id="random">Random Game</a></li>
-                            <li><a href="#" id="randomOwned">Random Game I Own</a></li>
-                        </ul>
-                    
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">Search <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" id="searchGenre">Search By Genre</a></li>
-                            <li><a href="#" id="searchTheme">Search By Theme</a></li>
-                            <li><a href="#" id="searchConcept">Search By Concept</a></li>
-                            <li><a href="#" id="searchDeveloper">Search By Developer</a></li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button">About <span class="caret"></span></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#" id="about">Account Setup Instructions</a></li>
-                            <li><a href="#" id="contact">Contact Us</a></li>
-                        </ul>
-                    </li>
-
-                     <!--<li><a href="#" id="gbUpdate">Giant Bomb Update(Not Working)</a></li>-->
-                    <li><a href="#" id="logOut">Log Out</a></li>
-                </ul>
+            <div class="jumbotron">
+                <div align="center"><img class="img-thumbnail" src="/images/wsipLogo.png" width="100%"></div>
+                <div align="center" id="gameList" style="font-size:160%;"></div>
+                <div id="apiList"></div>
             </div>
         </div>
-    </nav>
-    <div class="container">
-        <div class="jumbotron">
-            <div align="center"><img class="img-thumbnail" src="/images/wsipLogo.png" width="100%"></div>
-            <div align="center" id="gameList" style="font-size:160%;"></div>
-            <div id="apiList"></div>
-        </div>
-    </div>
-    <nav class="navbar navbar-default navbar-fixed-bottom">
-        <div class="container">
-            <div class="navbar-header">
-                <p class="navbar-brand">Powered By:</p>
+        <nav class="navbar navbar-default navbar-fixed-bottom">
+            <div class="container">
+                <div class="navbar-header">
+                    <p class="navbar-brand">Powered By:</p>
+                </div>
+                <div id="navbar2" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav" id="navigationBar2">
+                        <li class=""><a href="http://www.giantbomb.com/" target="_blank"><img src="/images/gbLogo.png"></a></li>
+                        <li class=""><a href="http://store.steampowered.com/" target="_blank"><img src="/images/steam.png"></a></li>
+                        <li class="navbar-brand"><small>Designed By:</small></li>
+                        <li class="navbar-brand"><small>Skyler L.A. <br>Brendon H.</small><br></li>
+                        <li class="navbar-brand"><small>Michelle B.<br>Chengcheng Z.</small></li>
+                        <li class="navbar-brand"><small>Seonghyeon L.</small></li>
+                    </ul>
+                </div>
             </div>
-            <div id="navbar2" class="navbar-collapse collapse">
-                <ul class="nav navbar-nav" id="navigationBar2">
-                    <li class=""><a href="http://www.giantbomb.com/" target="_blank"><img src="/images/gbLogo.png"></a></li>
-                    <li class=""><a href="http://store.steampowered.com/" target="_blank"><img src="/images/steam.png"></a></li>
-                    <li class="navbar-brand"><small>Designed By:</small></li>
-                    <li class="navbar-brand"><small>Skyler L.A. <br>Brendon H.</small><br></li>
-                    <li class="navbar-brand"><small>Michelle B.<br>Chengcheng Z.</small></li>
-                    <li class="navbar-brand"><small>Seonghyeon L.</small></li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+        </nav>
 
-    <div class="modal fade" id="registerSignIn" tabindex="-1" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title" id="registerSignin-title">Sign Up</h4>
-                </div>
-                <div class="modal-body">
-                    <p class="bg-danger" id="errorMsg2"></p>
-                    <form role="form" id="registerSignIn-form">
-                        <div class="form-group">
-                            <label for="inputEmail">Username (Required)</label>
-                            <input type="email" class="form-control"
-                                         id="inputEmail" placeholder="Enter Username" name="email"/>
-                        </div>
-                        <div class="form-group">
-                            <label for="inputPassword">Password (Required)</label>
-                            <input type="password" class="form-control"
-                                         id="inputPassword" placeholder="Password" name="password"/>
-                        </div>
-                        <div id="inputDIVSteamName" class="form-group">
-                            <label for="inputSteamName">Steam Name</label>
-                            <input type="steamName" class="form-control"
-                                         id="inputSteamName" placeholder="Steam Name" name="steamName"/>
-                            <button id="lookupButton" type="button" class="btn btn-default">Lookup Steam ID</button>
-                            <button id="helpButton" type="button" class="btn btn-default">Need Help?</button>
-                        </div>
-                        <div id="inputDIVSteamID" class="form-group">
-                            <label for="inputSteamID">Steam ID (Required)</label>
-                            <input type="steamID" class="form-control"
-                                         id="inputSteamID" placeholder='Use "Lookup Steam ID" Button Above If You Do Not Know Your Steam ID' name="steamID"/>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer" id="registerSignIn-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="registerButton">Register</button>
-                    <button type="button" class="btn btn-primary" id="signinButton">Sign In</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->    
-</body>
+        <div class="modal fade" id="registerSignIn" tabindex="-1" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        <h4 class="modal-title" id="registerSignin-title">Sign Up</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p class="bg-danger" id="errorMsg2"></p>
+                        <form role="form" id="registerSignIn-form">
+                            <div class="form-group">
+                                <label for="inputEmail">Username (Required)</label>
+                                <input type="email" class="form-control"
+                                       id="inputEmail" placeholder="Enter Username" name="email"/>
+                            </div>
+                            <div class="form-group">
+                                <label for="inputPassword">Password (Required)</label>
+                                <input type="password" class="form-control"
+                                       id="inputPassword" placeholder="Password" name="password"/>
+                            </div>
+                            <div id="inputDIVSteamName" class="form-group">
+                                <label for="inputSteamName">Steam Name</label>
+                                <input type="steamName" class="form-control"
+                                       id="inputSteamName" placeholder="Steam Name" name="steamName"/>
+                                <button id="lookupButton" type="button" class="btn btn-default">Lookup Steam ID</button>
+                                <button id="helpButton" type="button" class="btn btn-default">Need Help?</button>
+                            </div>
+                            <div id="inputDIVSteamID" class="form-group">
+                                <label for="inputSteamID">Steam ID (Required)</label>
+                                <input type="steamID" class="form-control"
+                                       id="inputSteamID" placeholder='Use "Lookup Steam ID" Button Above If You Do Not Know Your Steam ID' name="steamID"/>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer" id="registerSignIn-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="registerButton">Register</button>
+                        <button type="button" class="btn btn-primary" id="signinButton">Sign In</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+    </body>
 </html>
