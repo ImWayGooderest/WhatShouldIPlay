@@ -1,5 +1,5 @@
-var $currentUserSteam = "";
-var $currentUsername = "";
+var $userSteamID = "";
+var $userSteamName = "";
 var $allConcepts = "";
 var $allThemes = "";
 var $allGamesHome = "";
@@ -15,7 +15,7 @@ $(document).ready(function () {
 		initialLoad = true;
 	}
 
-	if ($currentUserSteam == "") {
+	if ($userSteamID == "") {
 		$("#logOut").hide();
 		$("#getList").hide();
 		$("#randomOwned").hide();
@@ -51,13 +51,24 @@ $(document).ready(function () {
 	});
 
 	$("#lookupButton").click(function () {
-		var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function (v) {
-			return [v.name, v.value];
-		}));
 		$.post("http://localhost:3000/lookupID64", {
-			"steamName": registrationData.steamName
+			"steamName": $("#inputSteamName").val()
 		}, function (data) {
-			$("#inputSteamID").val(data[0]);
+			if (data.err === undefined) {
+				$userSteamID = data[0];
+				$userSteamName = $("#inputSteamName").val();
+				$("#getList").show();
+				$("#randomOwned").show();
+				var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $userSteamName + '!</li>';
+				$("#navbar").append($greeting);
+				// showSteamGames(0, "time");
+				showSteamGames();
+			} else {
+				$("#errorMsg2").text(data.err);
+				$("#errorMsg2").effect("shake");
+			}
+
+
 		});
 	});
 
@@ -141,8 +152,8 @@ $(document).ready(function () {
 			"password": signinData.password
 		}, function (data) {
 			if (data.err === undefined) {
-				$currentUsername = data.username;
-				$currentUserSteam = data.steamID;
+				$userSteamName = data.username;
+				$userSteamID = data.steamID;
 
 				$("#registerSignIn").modal("hide");
 				$("#inputEmail").val("");
@@ -154,7 +165,7 @@ $(document).ready(function () {
 				$("#logOut").show();
 				$("#getList").show();
 				$("#randomOwned").show();
-				var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $currentUsername + '!</li>';
+				var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $userSteamName + '!</li>';
 				$("#navbar").append($greeting);
 				// showSteamGames(0, "time");
 				showSteamGames();
@@ -172,19 +183,19 @@ $(document).ready(function () {
 
 	function showSteamGames() {
 		$("#gameList").empty();
-		if ($currentUserSteam != "") {
+		if ($userSteamID != "") {
 			var temp = "Building Steam List. Please wait, This can take a few minutes...";
 			$('#gameList').append(temp);
 			$.post("http://localhost:3000/update", {
-				"steamID": $currentUserSteam
+				"steamID": $userSteamID
 			}, function (data) {
 				$.post("http://localhost:3000/getSteamList", {
-					"steamID": $currentUserSteam
+					"steamID": $userSteamID
 				}, function (data) {
 					if (data.length != 0) {
 						$usersGames = data[0]["games"];
 						$("#gameList").empty().append(
-							$currentUsername + '\'s Steam Games (Count: ' + data[0].games.length + '):\
+							$userSteamName + '\'s Steam Games (Count: ' + data[0].games.length + '):\
 							<table id="gameTable" class="text-center display">\
                 <thead>\
                     <tr>\
@@ -277,8 +288,8 @@ $(document).ready(function () {
 		}
 	}
 	$("#logOut").click(function () {
-		$currentUsername = "";
-		$currentUserSteam = "";
+		$userSteamName = "";
+		$userSteamID = "";
 		$usersGames = "";
 
 		$("#signup").show();
@@ -746,7 +757,7 @@ function randomGame() {
 }
 
 function randomGameOwn() {
-	if ($currentUserSteam != "") {
+	if ($userSteamID != "") {
 		var game = "";
 		do
 			game = _.sample($usersGames);

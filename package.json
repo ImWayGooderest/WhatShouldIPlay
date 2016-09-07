@@ -20,6 +20,7 @@
     "mongojs": "^2.3.0",
     "mongoose": "^4.4.12",
     "mongous": "^0.2.7",
+    "morgan": "^1.7.0",
     "nodemon": "^1.9.1",
     "redis": "^2.6.0-1",
     "request": "^2.71.0",

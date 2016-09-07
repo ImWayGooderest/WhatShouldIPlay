@@ -4,9 +4,12 @@ var dotenv = require('dotenv').config(),
     http = require("http"),
     bodyParser = require('body-parser'),
     app = express(),
+    session = require('express-session'),
     cookieParser = require("cookie-parser"),
-    bcrypt = require('bcrypt');
+    bcrypt = require('bcrypt'),
+    morgan = require('morgan');
 
+app.use(morgan('dev'));
 const saltRounds = 10;
 var mongojs = require('mongojs');
 var parseString = require('xml2js').parseString;
@@ -16,7 +19,6 @@ var users = db.collection('users');
 var userGames = db.collection('userGames');
 var giantBombDatabase = db.collection('giantBombDatabase');
 var sToGB = db.collection('sToGB');
-// var steamKey, gbKey;
 
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
@@ -28,20 +30,19 @@ app.listen(3000, function() {
     console.log('App listening on port 3000!');
 });
 
-app.use(bodyParser());
+var urlencodedParser = bodyParser.urlencoded({
+    extended: false
+});
 
-// app.post('/API',function(req,res){ 
-//     steamKey = process.env.STEAM_API_KEY;
-//     gbKey = process.env.GB_API_KEY;
-//     if(steamKey === null || gbKey === null) {
-//         res.send("API keys failed to load!");
-//     } else {
-//         res.sendStatus(200);
-//     }
-//      
-// });
+var jsonParser = bodyParser.json();
 
-app.post('/signup',function(req,res){
+app.use(cookieParser());
+app.use(session({secret: process.env.SECRET,
+    saveUninitialized: true,
+    resave: true
+}));
+
+app.post('/signup',function(req,res){  //will be used only for admin accounts in the future
     bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
         if(err === undefined) {
             req.body.password = hash;
@@ -58,7 +59,7 @@ app.post('/signup',function(req,res){
 
 });
 
-app.post('/exists',function(req,res){
+app.post('/exists',function(req,res){  //will be used only for admin accounts in the future
     users.find(req.body, function(err, doc){
         if(doc != null){
             res.json(doc);
@@ -67,7 +68,7 @@ app.post('/exists',function(req,res){
 
 });
 
-app.post('/signin',function(req,res){
+app.post('/signin',function(req,res){  //will be used only for admin accounts in the future
 
     users.find({"username": req.body.username}, function(err, doc){
         if(doc.length > 0){
@@ -87,7 +88,8 @@ app.post('/signin',function(req,res){
     });
 });
 
-app.post('/lookupID64',function(req,res){
+app.post('/lookupID64', urlencodedParser, function(req,res){
+    if (!req.body.steamName) return res.sendStatus(400);
     var url1 = "";
     if(!isNaN(req.body.steamName)) {
         url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
@@ -97,6 +99,7 @@ app.post('/lookupID64',function(req,res){
     request({url: url1, json: true}, function (error, response, body) {
         parseString(body, function (err, result) {
             if(result.profile != null){
+                req.session.steamID = result.profile.steamID64;
                 res.json(result.profile.steamID64);
             }
             else{
@@ -110,7 +113,7 @@ app.post('/lookupID64',function(req,res){
 app.post('/update',function(req,res){
     var steamID = req.body.steamID;
 
-    var url2 = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    var url2 = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
     request({url: url2, json: true}, function (error, response, body) {
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
