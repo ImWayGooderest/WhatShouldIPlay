@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="shortcut icon" href="/images/favicon.ico" type="image/x-icon" />
+        <title>What Should I Play?</title>
+        <script src="js/jquery-2.0.3.min.js"></script>
+        <script src="js/jquery-ui.js"></script>
+        <!--https://github.com/coolaj86/knuth-shuffle license: Apache License Version 2.0, January 2004-->
+        <script src="js/shuffle.js"></script>
+        <!--https://bootswatch.com/united/ Made by Thomas Park. Contact him at thomas@bootswatch.com. Code released under the MIT License. Based on Bootstrap. Icons from Font Awesome. Web fonts from Google.-->
+        <script type="text/javascript" src="js/bootstrap.min.js"></script>
+        <link href="css/bootstrap.min.css" rel="stylesheet" type="text/css">
+        <!--http://www.himpfen.com/shadow-effect-bootstrap-components/.-->
+        <link href="css/lp.css" rel="stylesheet" type="text/css">
+        <script src="js/underscore-min.js"></script>
+        <!--<script src="js/index.js"></script>-->
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.css"/>
+        <script type="text/javascript" src="https://cdn.datatables.net/t/dt/dt-1.10.11/datatables.min.js"></script>
+    </head>
+    <body>
+        <div class="col-sm-8 col-sm-offset-2" id="landingPage">
+            <h1>What Should I Play?</h1>
+            <div class="input-group" >
+
+                <input type="steamName" class="form-control"
+                       id="inputSteamName" placeholder="Steam Name" name="steamName"/>
+                <div class="input-group-btn">
+                    <button id="lookupButton" type="button" class="btn btn-default"><i class="glyphicon glyphicon-search"></i></button>
+                    <button id="helpButton" type="button" class="btn btn-default"><i class="glyphicon glyphicon-question-sign"></i></button>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

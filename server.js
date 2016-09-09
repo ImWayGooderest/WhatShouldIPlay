@@ -42,6 +42,14 @@ app.use(session({secret: process.env.SECRET,
     resave: true
 }));
 
+
+app.get('/getUsername', urlencodedParser, function(req,res) {
+    if(req.session.steamID ) {
+        res.json({"steamID": req.session.steamID, "username": req.session.steamName });
+    } else {
+        res.json({"steamID": ""});
+    }
+});
 app.post('/signup',function(req,res){  //will be used only for admin accounts in the future
     bcrypt.hash(req.body.password, saltRounds, function(err, hash) {
         if(err === undefined) {
@@ -99,18 +107,19 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
     request({url: url1, json: true}, function (error, response, body) {
         parseString(body, function (err, result) {
             if(result.profile != null){
-                req.session.steamID = result.profile.steamID64;
+                req.session.steamID = result.profile.steamID64[0];
+                req.session.steamName = req.body.steamName;
                 res.json(result.profile.steamID64);
             }
             else{
-                res.json(["Not Found"]);
+                res.json({"err": "User Not Found"});
             }
             
         });
     });
 });
 
-app.post('/update',function(req,res){
+app.post('/update', urlencodedParser, function(req,res){
     var steamID = req.body.steamID;
 
     var url2 = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
@@ -127,7 +136,7 @@ app.post('/update',function(req,res){
     });
 });
 
-function updateStoGB(tempSteam, gameCount, res){
+function updateStoGB(tempSteam, gameCount, res){ //looks up giantbomb ID and adds it to
     i = 0;
     (function updateOne() {
         sToGB.find({steamAppID: tempSteam.games[i].appid.toString()}, function (err, docs) {
@@ -158,17 +167,17 @@ function bestMatch(steamName, res){
     });
 }
 
-app.post('/bestMatch',function(req,res){
+app.post('/bestMatch',urlencodedParser, function(req,res){
     bestMatch(req.body.steamName, res);
 });
 
-app.post('/getSteamList',function(req,res){
+app.post('/getSteamList',urlencodedParser, function(req,res){
     userGames.find({"steamID": req.body.steamID}, function (err, docs) {
         res.json(docs);
     });
 });
 
-app.post('/match',function(req,res){
+app.post('/match',urlencodedParser, function(req,res){
     tempSteamID = req.body.steamAppID;
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
         var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json';
@@ -184,62 +193,62 @@ app.post('/match',function(req,res){
 
 
 
-app.get('/getGenres',function(req,res){
+app.get('/getGenres',urlencodedParser, function(req,res){
     giantBombDatabase.distinct('genres.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.get('/getConcepts',function(req,res){
+app.get('/getConcepts',urlencodedParser, function(req,res){
     giantBombDatabase.distinct('concepts.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.get('/getThemes',function(req,res){
+app.get('/getThemes',urlencodedParser, function(req,res){
     giantBombDatabase.distinct('themes.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
 
 
-app.get('/getDevelopers',function(req,res){
+app.get('/getDevelopers',urlencodedParser, function(req,res){
     giantBombDatabase.distinct('developers.name',{}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.post('/searchGenre',function(req,res){
+app.post('/searchGenre',urlencodedParser, function(req,res){
     giantBombDatabase.find({'genres.name': req.body.genre}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.post('/searchConcept',function(req,res){
+app.post('/searchConcept',urlencodedParser, function(req,res){
     giantBombDatabase.find({'concepts.name': req.body.concept}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.post('/searchDevelopers',function(req,res){
+app.post('/searchDevelopers',urlencodedParser, function(req,res){
     giantBombDatabase.find({'developers.name': req.body.developer}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.post('/searchTheme',function(req,res){
+app.post('/searchTheme',urlencodedParser, function(req,res){
     giantBombDatabase.find({'themes.name': req.body.theme}, function (err, docs) {
          res.json(docs);
     });
 });
 
-app.get('/makeHome',function(req,res){
+app.get('/makeHome',urlencodedParser, function(req,res){
     giantBombDatabase.find({},{'image.super_url': 1, 'image.icon_url': 1, 'id': 1, 'name': 1}, function (err, docs) {
         res.json(docs);
     });
 });
 
-app.get('/game/:id',function(req,res){
+app.get('/game/:id',urlencodedParser, function(req,res){
     giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
          res.json(docs);
     });
