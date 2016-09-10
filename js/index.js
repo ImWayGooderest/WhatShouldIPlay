@@ -55,8 +55,8 @@ $(document).ready(function () {
 			"steamName": $("#inputSteamName").val()
 		}, function (data) {
 			if (data.err === undefined) {
-				$userSteamID = data[0];
-				$userSteamName = $("#inputSteamName").val();
+				$userSteamID = data.steamID;
+				$userSteamName = data.steamName;
 				$("#getList").show(); //add to navbar my steam list
 				$("#randomOwned").show(); //add to navbar random game I own
 				// var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $userSteamName + '!</li>';
@@ -64,6 +64,7 @@ $(document).ready(function () {
 				// showSteamGames(0, "time");
 				showSteamGames();
 			} else {
+				alert(data.err);
 				$("#errorMsg2").text(data.err);
 				$("#errorMsg2").effect("shake");
 			}
@@ -396,7 +397,7 @@ $(document).ready(function () {
 			var filData = $allConcepts;
 		}
 
-		pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
+		var pages = '#abcdefghijklmnopqrstuvwxyz'.split('');
 
 		text += '<nav><ul class="pagination pagination-sm">';
 

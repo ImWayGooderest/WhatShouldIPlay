@@ -19,6 +19,7 @@ var users = db.collection('users');
 var userGames = db.collection('userGames');
 var giantBombDatabase = db.collection('giantBombDatabase');
 var sToGB = db.collection('sToGB');
+var steamUsersDB = db.collection('steam_users');
 
 app.use(express.static(__dirname));
 // Create our Express-powered HTTP server
@@ -45,7 +46,7 @@ app.use(session({secret: process.env.SECRET,
 
 app.get('/getUsername', urlencodedParser, function(req,res) {
     if(req.session.steamID ) {
-        res.json({"steamID": req.session.steamID, "username": req.session.steamName });
+        res.json({"steamID": req.session.steamID, "username": req.session.steamName }); //TODO: send back list of games too
     } else {
         res.json({"steamID": ""});
     }
@@ -67,7 +68,7 @@ app.post('/signup',function(req,res){  //will be used only for admin accounts in
 
 });
 
-app.post('/exists',function(req,res){  //will be used only for admin accounts in the future
+app.post('/exists',function(req,res){  //TODO:will be used only for admin accounts in the future
     users.find(req.body, function(err, doc){
         if(doc != null){
             res.json(doc);
@@ -76,7 +77,7 @@ app.post('/exists',function(req,res){  //will be used only for admin accounts in
 
 });
 
-app.post('/signin',function(req,res){  //will be used only for admin accounts in the future
+app.post('/signin',function(req,res){  //TODO: w ill be used only for admin accounts in the future
 
     users.find({"username": req.body.username}, function(err, doc){
         if(doc.length > 0){
@@ -98,26 +99,77 @@ app.post('/signin',function(req,res){  //will be used only for admin accounts in
 
 app.post('/lookupID64', urlencodedParser, function(req,res){
     if (!req.body.steamName) return res.sendStatus(400);
-    var url1 = "";
-    if(!isNaN(req.body.steamName)) {
-        url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
-    } else {
-        url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
-    }
-    request({url: url1, json: true}, function (error, response, body) {
-        parseString(body, function (err, result) {
-            if(result.profile != null){
-                req.session.steamID = result.profile.steamID64[0];
+    req.body.steamName  = req.body.steamName.toLowerCase();
+    // check if steam name is in database
+    steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
+        if(err == null && docs.length >0)
+        {//todo
+            getOwnedGames(docs[0].steam_id);
+        } else {
+            var url1 = "";
+            if(isNaN(req.body.steamName)) {
+                url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
+                request({url: url1, json: true}, function (error, response, body) {
+                    parseString(body, function (err, result) {
+                        if(typeof result.response == 'undefined'){
+                            steamUsersDB.insert({steam_id: result.profile.steamID64[0], steam_name: req.body.steamName }, function(err, r) {
+                                if(err == null) {
+                                    req.session.steamID = result.profile.steamID64[0];
+                                    req.session.steamName = req.body.steamName;
+                                    // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
+                                } else {
+                                    res.json({"err": err});
+                                }
+                            });
+                            //TODO: start searching for users games and send those back as well instead of doing another request through index.js
+                        }
+                        else{
+                            res.json({"err": result.response.error});
+                        }
+
+                    });
+                });
+            } else {
+                //if its all numbers then its the id itself
+                req.session.steamID = req.body.steamName;
                 req.session.steamName = req.body.steamName;
-                res.json(result.profile.steamID64);
+                // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
             }
-            else{
-                res.json({"err": "User Not Found"});
+
+            if(req.session.steamID != null) {
+                getOwnedGames(req.session.steamID);
             }
-            
-        });
+
+        }
     });
+
+
+
+
 });
+
+function getOwnedGames(steamID) {
+    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    request({url: url, json: true}, function (error, response, body) {
+        if (error == null && response.statusCode === 200) {
+            var tempSteam = body.response;
+            steamUsersDB.update({steam_id: steamID}, {$set:tempSteam }, function(err, r) {
+                if(err == null) {
+
+
+                } else {
+                    console.log("ERROR:"+err);
+                    res.json({"err": err});
+                }
+            });
+        }
+        else{
+            console.log("ERROR:"+error);
+            res.json({"err": error});
+            //todo if failed to return
+        }
+    });
+}
 
 app.post('/update', urlencodedParser, function(req,res){
     var steamID = req.body.steamID;
