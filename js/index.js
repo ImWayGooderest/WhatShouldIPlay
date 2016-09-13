@@ -25,6 +25,12 @@ $(document).ready(function () {
 		$.post("http://localhost:3000/gbAll", {}, function (data) {});
 	});
 
+	$("#testButton").click(function () {
+		$.post("http://localhost:3000/test", {"steamName": $("#inputSteamName").val()}, function (data) {
+			console.log(data);
+		});
+
+	});
 	// $("#signup").click(function () {
 	// 	$("#signinButton").hide();
 	// 	$("#registerButton").show();
@@ -51,25 +57,23 @@ $(document).ready(function () {
 	// });
 
 	$("#lookupButton").click(function () {
+
 		$.post("http://localhost:3000/lookupID64", {
 			"steamName": $("#inputSteamName").val()
 		}, function (data) {
-			if (data.err === undefined) {
-				$userSteamID = data.steamID;
-				$userSteamName = data.steamName;
+			if (data.err === undefined && data.game_count > 0) {
+				$userSteamID = data.steam_id;
+				$userSteamName = data.steam_name;
 				$("#getList").show(); //add to navbar my steam list
-				$("#randomOwned").show(); //add to navbar random game I own
-				// var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $userSteamName + '!</li>';
-				// $("#navbar").append($greeting);
-				// showSteamGames(0, "time");
-				showSteamGames();
+				$("#randomOwned").show(); //add to navbar random gbGame I own
+				showSteamGames(data);
 			} else {
-				alert(data.err);
-				$("#errorMsg2").text(data.err);
-				$("#errorMsg2").effect("shake");
+				if(data.game_count === 0) {
+					alert("No Games Found!")
+				} else {
+					alert(data.err);
+				}
 			}
-
-
 		});
 	});
 
@@ -182,110 +186,88 @@ $(document).ready(function () {
 		showSteamGames();
 	});
 
-	function showSteamGames() {
+	//takes in result from querying steam_users
+	function showSteamGames(userInfo) {
 		$("#gameList").empty();
+		var temp = "Building Steam List. Please wait, This can take a few minutes...";
+		$('#gameList').append(temp);
 		if ($userSteamID != "") {
-			var temp = "Building Steam List. Please wait, This can take a few minutes...";
-			$('#gameList').append(temp);
-			$.post("http://localhost:3000/update", {
-				"steamID": $userSteamID
-			}, function (data) {
-				$.post("http://localhost:3000/getSteamList", {
-					"steamID": $userSteamID
-				}, function (data) {
-					if (data.length != 0) {
-						$usersGames = data[0]["games"];
-						$("#gameList").empty().append(
-							$userSteamName + '\'s Steam Games (Count: ' + data[0].games.length + '):\
-							<table id="gameTable" class="text-center display">\
-                <thead>\
-                    <tr>\
-                      <th class="text-center">Game Art</th>\
-                      <th class="text-center">Steam App ID</th>\
-                      <th class="text-center">Giant Bomb ID</th>\
-                      <th class="text-center">Title</th>\
-                      <th class="text-center">Play Time</th>\
-                      <th class="text-center">Launch Game</th>\
-                    </tr>\
-                </thead>\
-              </table>');
-						$('#gameTable').DataTable({
-							"processing": true,
-							"serverSide": false,
-							"order": [
-								[4, "desc"]
-							],
-							"data": $usersGames,
-							"columnDefs": [{
-								"targets": [0],
-								"searchable": false,
-								"data": "img_logo_url",
-								"render": function (data, type, row) {
-									return '<a href=# onclick="view(' + row["giantBombID"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["appid"] + '/' + data + '.jpg"/</a>'; //game art';
-								}
-							}, {
-								"targets": [1],
-								"searchable": false,
-								"data": "appid"
-							}, {
-								"targets": [2],
-								"searchable": false,
-								"data": "giantBombID",
-								"render": function (data, type, row) {
-									var text = "";
-
+				if (userInfo.length != 0) {
+					$usersGames = userInfo.games;
+					$("#gameList").empty().append(
+						$userSteamName + '\'s Steam Games (Count: ' + userInfo.game_count + '):\
+						<table id="gameTable" class="text-center display">\
+			<thead>\
+				<tr>\
+				  <th class="text-center">Game Art</th>\
+				  <th class="text-center">Title</th>\
+				  <th class="text-center">Description</th>\
+				  <th class="text-center">Play Time</th>\
+				  <th class="text-center">Launch Game</th>\
+				</tr>\
+			</thead>\
+		  </table>');
+					$('#gameTable').DataTable({
+						"processing": true,
+						"serverSide": false,
+						"order": [
+							[3, "desc"]
+						],
+						"data": $usersGames,
+						"columnDefs": [{
+							"targets": [0],
+							"searchable": false,
+							"data": "img_logo_url",
+							"render": function (data, type, row) {
+								return '<a href=# onclick="view(' + row["giantBombID"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["appid"] + '/' + data + '.jpg"/</a>'; //gbGame art';
+							}
+						}, {
+							"targets": [1],
+							"data": "name",
+							"render": function (data, type, row) {
+								var nameNoSpace = data.replace(/ /g, "+");
+								return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
+							}
+						},  {
+							"targets": [2],//temp for now until I return gb deck too
+							"data": "name",
+							"render": function (data, type, row) {
+								var nameNoSpace = data.replace(/ /g, "+");
+								return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
+							}
+						}, {
+							"targets": [3],
+							"searchable": false,
+							"data": "playtime_forever",
+							"render": {
+								"display": function (data, type, row) {
+									// if(type == "sort"){
+									// 	return data;
+									// } else
 									if (data != 0) {
-										text += '<a href="http://www.giantbomb.com/game/3030-' + data + '/" target="_blank"><button type="button" class="btn btn-primary">GB ID: ' + data + '</button></a>';
+										var days = Math.floor(data / 1440);
+										var remainingMinutes = data % 1440;
+										var hours = Math.floor(remainingMinutes / 60);
+										var minutes = remainingMinutes % 60;
+										return days + ' days,<br> ' + hours + ' hours,<br> ' + minutes + ' minutes';
 									} else {
-										text += 'None Found.<br>'
+										return "Never Played";
 									}
-									text += '<label id="table' + row["appid"] + '" for="' + row["appid"] + '"><small>Enter Giant Bomb ID: </small></label><input id="input' + row["appid"] + '" type="text" class="form-control input-sm" value="' + data + '" id="gbID">';
-									text += '<button onclick="bestMatch(\'' + row["name"].replace(/'/g, "\\\'") + '\',' + row["appid"] + ')" type="button" class="btn btn-primary btn-sm">Best Match</button>';
-									text += '<button onclick="match(' + row["appid"] + ')"	type="button" class="btn btn-primary btn-sm">Submit ID</button>';
-									return text;
-								}
-							}, {
-								"targets": [3],
-								"data": "name",
-								"render": function (data, type, row) {
-									var nameNoSpace = data.replace(/ /g, "+");
-									return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
-								}
-							}, {
-								"targets": [4],
-								"searchable": false,
-								"data": "playtime_forever",
-								"render": {
-									"display": function (data, type, row) {
-										// if(type == "sort"){
-										// 	return data;
-										// } else
-										if (data != 0) {
-											var days = Math.floor(data / 1440);
-											var remainingMinutes = data % 1440;
-											var hours = Math.floor(remainingMinutes / 60);
-											var minutes = remainingMinutes % 60;
-											return days + ' days,<br> ' + hours + ' hours,<br> ' + minutes + ' minutes';
-										} else {
-											return "Never Played";
-										}
-										// return data;
-									},
-									"filter": "playtime_forever"
-								}
-							}, {
-								"targets": [5],
-								"searchable": false,
-								"data": "appid",
-								"render": function (data, type, row) {
-									return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
-								}
+									// return data;
+								},
+								"filter": "playtime_forever"
+							}
+						}, {
+							"targets": [4],
+							"searchable": false,
+							"data": "appid",
+							"render": function (data, type, row) {
+								return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+							}
 
-							}]
-						});
-					}
-				});
-			});
+						}]
+					});
+				}
 		}
 	}
 	// $("#logOut").click(function () {
@@ -487,7 +469,7 @@ $(document).ready(function () {
 		if ($appID != "") {
 			var temp = $("#input" + $appID).val();
 			$("#table" + $appID).empty();
-			var text = '<a href="http://www.giantbomb.com/game/3030-' + temp + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
+			var text = '<a href="http://www.giantbomb.com/gbGame/3030-' + temp + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 			$("#table" + $appID).append(text);
 			$.post("http://localhost:3000/match", {
 				"steamAppID": parseInt($appID),
@@ -501,7 +483,7 @@ $(document).ready(function () {
 			"steamName": name
 		}, function (data) {
 			$("#table" + steamAppID).empty();
-			var text = '<a href="http://www.giantbomb.com/game/3030-' + data.appID + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
+			var text = '<a href="http://www.giantbomb.com/gbGame/3030-' + data.appID + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 			$("#table" + steamAppID).append(text);
 			$.post("http://localhost:3000/match", {
 				"steamAppID": parseInt(steamAppID),
@@ -565,7 +547,7 @@ $(document).ready(function () {
 					"searchable": false,
 					"data": "image.small_url",
 					"render": function (data, type, row) {
-						return '<a href=# onclick="view(' + row["id"] + ')"><img class="img box-shadow--6dp" src="' + data + '" width="300"></a>'; //game art';
+						return '<a href=# onclick="view(' + row["id"] + ')"><img class="img box-shadow--6dp" src="' + data + '" width="300"></a>'; //gbGame art';
 					}
 				},  {
 					"targets": [1],
@@ -635,7 +617,7 @@ $(document).ready(function () {
 				$userSteamName = data.username;
 				$("#inputSteamName").val(data.username);
 				$("#getList").show(); //add to navbar my steam list
-				$("#randomOwned").show(); //add to navbar random game I own
+				$("#randomOwned").show(); //add to navbar random gbGame I own
 				// var $greeting = '<span class="text-primary" id="greeting">Hello, ' + $userSteamName + '!</li>';
 				// $("#navbar").append($greeting);
 				// showSteamGames(0, "time");
@@ -693,7 +675,7 @@ $(document).ready(function () {
 // }
 
 	function view(id) {
-		$.get("http://localhost:3000/game/" + id, function (data) {
+		$.get("http://localhost:3000/gbGame/" + id, function (data) {
 			if (data.length != 0) {
 				$("#gameList").empty();
 				var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">' + data[0].name + '';
@@ -767,16 +749,16 @@ $(document).ready(function () {
 
 	function randomGame() {
 		var game = _.sample($allGamesHome);
-		view(game.id);
+		view(gbGame.id);
 	}
 
 	function randomGameOwn() {
 		if ($userSteamID != "") {
 			var game = "";
 			do
-				game = _.sample($usersGames);
-			while (game.giantBombID == 0);
-			view(game.giantBombID);
+				gbGame = _.sample($usersGames);
+			while (gbGame.giantBombID == 0);
+			view(gbGame.giantBombID);
 		}
 	}
 

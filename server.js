@@ -17,7 +17,7 @@ var parseString = require('xml2js').parseString;
 var db = mongojs('wsip');
 var users = db.collection('users');
 var userGames = db.collection('userGames');
-var giantBombDatabase = db.collection('giantBombDatabase');
+var giantBombDatabase = db.collection('GBDB');
 var sToGB = db.collection('sToGB');
 var steamUsersDB = db.collection('steam_users');
 
@@ -102,9 +102,14 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
     req.body.steamName  = req.body.steamName.toLowerCase();
     // check if steam name is in database
     steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
-        if(err == null && docs.length >0)
+        if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
         {//todo
-            getOwnedGames(docs[0].steam_id);
+            req.session.steamID = docs[0].steam_id;
+            req.session.steamName = docs[0].steam_name;
+            getOwnedGames(req.session.steamID, function (doc) {
+                res.json(doc);
+            });
+
         } else {
             var url1 = "";
             if(isNaN(req.body.steamName)) {
@@ -120,8 +125,7 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
                                 } else {
                                     res.json({"err": err});
                                 }
-                            });
-                            //TODO: start searching for users games and send those back as well instead of doing another request through index.js
+                            })
                         }
                         else{
                             res.json({"err": result.response.error});
@@ -137,7 +141,9 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
             }
 
             if(req.session.steamID != null) {
-                getOwnedGames(req.session.steamID);
+                getOwnedGames(req.session.steamID, function (doc) {
+                    res.json(doc);
+                }); //send back username and games
             }
 
         }
@@ -148,14 +154,18 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
 
 });
 
-function getOwnedGames(steamID) {
+function getOwnedGames(steamID, callback) {
     var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
     request({url: url, json: true}, function (error, response, body) {
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
-            steamUsersDB.update({steam_id: steamID}, {$set:tempSteam }, function(err, r) {
+            steamUsersDB.findAndModify({
+                query: {steam_id: steamID},
+                update: {$set:tempSteam },
+                new: true
+            }, function(err, doc, lastErrorObject) {
                 if(err == null) {
-
+                    callback(doc);
 
                 } else {
                     console.log("ERROR:"+err);
@@ -169,6 +179,147 @@ function getOwnedGames(steamID) {
             //todo if failed to return
         }
     });
+}
+
+app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
+    if (!req.body.steamName) return res.sendStatus(400);
+
+
+
+    steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
+        if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
+        {//todo
+            checkGameOnGB(docs[0].games, docs[0].steam_id, function (doc) {
+                res.json(docs[0].games);
+            });
+
+        }
+    });
+});
+
+//takes in a list of users games/ checks if games are in gbdb and if not go to
+function checkGameOnGB(users_games, steam_id, callback) {
+    updateOneGame(users_games, steam_id, 0);
+
+}
+
+function updateSteamGames(steam_id, users_games, callback) {
+    steamUsersDB.findAndModify({
+        query: {steam_id: steam_id},
+        update: {$set: {games: users_games}}
+    }, function (err, doc, lastErrorObject) {
+        if (err == null) {
+            callback(doc);
+
+        } else {
+            console.log("ERROR:" + err);
+            res.json({"err": err});
+        }
+    });
+}
+function updateOneGame(users_games, steam_id, i, callback) {//need betterfunction name
+    giantBombDatabase.findOne({steamAppID: users_games[i].appid.toString()}, function (err, doc) { //check if gbGame exists in gbdb by appid
+        if(err == null && doc != null) {
+
+            if(!users_games[i].deck) {
+                //add deck to user games
+                //todo: add deck to users games
+                // steamUsersDB.findAndModify({
+                //     query: {steam_id: steamID},
+                //     update: {$set:doc.deck },
+                //     new: true
+                // }, function(err, doc, lastErrorObject) {
+                //     if(err == null) {
+                //         callback(doc);
+                //
+                //     } else {
+                //         console.log("ERROR:"+err);
+                //         res.json({"err": err});
+                //     }
+                // });
+            }
+
+
+        } else if(err != null){
+            console.log("ERROR:"+err);
+            res.json({"err": err});
+        } else {
+            //TODO go on giant bomb to get the info
+            var gameName = users_games[i].name;
+            steamNameToGBName(users_games[i].name, function(gbGameName) {
+               if(gbGameName != null)
+                   gameName = gbGameName;
+                var noSpace = gameName.replace(/ /g,"+");
+                var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&limit=10&query='+noSpace+'&resources=gbGame';
+
+                request({url: url, json: true, timeout:10000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+                    //TODO error check
+                    //TODO: make sure its has pc in the platform
+                    //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
+                    //counter-strike should be halflife counter stirke
+                    //insert logic to find correct gbGame
+                    for(gbGame in body.results) {
+                        for(platform in gbGame.platforms) {
+                            if(platform.name === "PC") {
+                                //insert deck to steam games
+                                insertGBGamePage(gbGame.api_detail_url, users_games[i].appid.toString());
+                                users_games[i].deck = gbGame.deck;
+                                //TODO WORK ON THIS
+                                updateSteamGames(steam_id, users_games, callback);
+                            }
+                        }
+                    }
+
+            });
+
+
+
+                // res.json({'appID': body.results[0].id});
+            });
+        }
+    });
+}
+
+function insertGBGamePage(api_detail_url, app_id) {
+    request({url: api_detail_url, json: true, timeout:10000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+        giantBombDatabase.insert({
+            date_last_updated: body.results.date_last_updated,
+            deck: body.results.deck,
+            id: body.results.id,
+            name: body.results.name,
+            site_detail_url: body.results.site_detail_url,
+            concepts: body.results.concepts,
+            developers: body.results.developers,
+            genres: body.results.genres,
+            objects: body.results.objects,
+            publishers: body.results.publishers,
+            similar_games: body.results.similar_games,
+            themes: body.results.themes,
+            steamAppId: app_id
+        }, function(err, r) {
+            if(err == null) {
+                callback();
+            } else {
+                res.json({"err": err});
+            }
+        });
+    });
+
+}
+
+function steamNameToGBName(gameName, callback) { //list of custom names for giant bomb
+    var names = {
+        "counter-strike": "half life: counter-strike"
+    };
+    callback(names[gameName.toLowerCase()]);
+}
+
+
+
+
+function sendError(err) {//TODO: unfinished
+    console.log("ERROR:"+err);
+    res.json({"err": err});
 }
 
 app.post('/update', urlencodedParser, function(req,res){
@@ -213,8 +364,8 @@ function updateStoGB(tempSteam, gameCount, res){ //looks up giantbomb ID and add
 
 function bestMatch(steamName, res){
     var noSpace = steamName.replace(/ /g,"+");
-    var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=game';
-    request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+    var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=gbGame';
+    request({url: url, json: true}, function (error, response, body) {
         res.json({'appID': body.results[0].id});
     });
 }
@@ -232,8 +383,8 @@ app.post('/getSteamList',urlencodedParser, function(req,res){
 app.post('/match',urlencodedParser, function(req,res){
     tempSteamID = req.body.steamAppID;
     sToGB.update({"steamAppID": req.body.steamAppID}, req.body, {upsert: true},function (err, docs) {
-        var url = 'http://www.giantbomb.com/api/game/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json';
-        request({url: url, json: true, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body){
+        var url = 'http://www.giantbomb.com/api/gbGame/3030-'+req.body.giantBombID+'/?api_key='+process.env.GB_API_KEY+'&format=json';
+        request({url: url, json: true,}, function (error, response, body){
             if (body.results.steamAppID != null){
                 body.results.steamAppID = tempSteamID;
                 giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
@@ -300,7 +451,7 @@ app.get('/makeHome',urlencodedParser, function(req,res){
     });
 });
 
-app.get('/game/:id',urlencodedParser, function(req,res){
+app.get('/gbGame/:id',urlencodedParser, function(req,res){
     giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
          res.json(docs);
     });
