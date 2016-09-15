@@ -95,18 +95,7 @@ app.post('/signin',function(req,res){  //TODO: w ill be used only for admin acco
     });
 });
 
-function insertUserAndSetSession(req, steam_id, steam_name, callback) {
-    steamUsersDB.insert({steam_id: steam_id, steam_name: steam_name}, function (err, r) {
-        if (err == null) {
-            req.session.steamID = steam_id;
-            req.session.steamName = steam_name;
-            // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
-        } else {
-            callback(err);
 
-        }
-    });
-}
 app.post('/lookupID64', urlencodedParser, function(req,res){
     if (!req.body.steamName) return res.sendStatus(400);
     req.body.steamName  = req.body.steamName.toLowerCase();
@@ -161,32 +150,7 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
 
 });
 
-function getOwnedGames(steamID, callback) {
-    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
-    request({url: url, json: true}, function (error, response, body) {
-        if (error == null && response.statusCode === 200) {
-            var tempSteam = body.response;
-            steamUsersDB.findAndModify({
-                query: {steam_id: steamID},
-                update: {$set:tempSteam },
-                new: true
-            }, function(err, doc, lastErrorObject) {
-                if(err == null) {
-                    callback(doc);
 
-                } else {
-                    addError(err);
-                    callback(err);
-                }
-            });
-        }
-        else{
-            addError(error);
-            callback(error);
-            //todo if failed to return
-        }
-    });
-}
 
 app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
     if (!req.body.steamName) return res.sendStatus(400);
@@ -203,252 +167,6 @@ app.post('/test', urlencodedParser, function(req,res){ //this is to test the che
         }
     });
 });
-
-//takes in a list of users games/ checks if games are in gbdb and if not go to
-function checkGameOnGB(users_games, steam_id, callback) {
-    var i=0;
-    var gameCount = users_games.length;
-    (function updateOne() {
-        updateOneGameGB(users_games[i], steam_id, function(updated_users_game, err){
-            if(err == undefined) {
-                users_games[i] = updated_users_game;
-
-            }
-            i++;
-            if(i < gameCount) {
-                updateOne()
-            } else {
-                insertGbInfoToSteam(steam_id, users_games, function(result) {
-                    callback(result);
-                });
-            }
-
-
-        });
-    })();
-    // for(var i =0;i<users_games.length;i++) {
-    //     updateOneGameGB(users_games[i], steam_id, function(updated_users_game){
-    //         users_games[i] = updated_users_game;
-    //
-    //         if(i >= users_games.length) {
-    //             insertGbInfoToSteam(users_games, function(result) {
-    //                 callback(result);
-    //             });
-    //         }
-    //
-    //     });
-    // }
-
-
-}
-
-
-function updateOneGameGB(steam_game, steam_id, callback) {//need betterfunction name
-    var gameName = steam_game.name;
-    steamNameToGBName(steam_game.name, function(gbGameName) {
-        if(gbGameName != null)
-            gameName = gbGameName;
-
-        giantBombDatabase.findOne({steamAppId: steam_game.appid.toString()}, function (err, doc) { //check if game exists in gbdb by appid
-            if(err == null && doc != null) {
-
-                if(!steam_game.deck) {
-                    steam_game.deck = doc.deck;
-                    steam_game.themes = doc.themes;
-                    steam_game.genres = doc.genres;
-                }
-                callback(steam_game);
-
-            } else if(err != null){
-                addError(err);
-                callback("",err);
-            } else {
-                //TODO go on giant bomb to get the info
-                var gameName = steam_game.name;
-                var noSpace = gameName.replace(/ /g,"+");
-                var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&limit=10&query='+noSpace+'&resources=game';
-
-                request({url: url, json: true, timeout:20000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
-                    //TODO error check
-                    //TODO: make sure its has pc in the platform
-                    //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
-                    //insert logic to find correct game
-                    if(err){
-                        addError(err);
-
-                    } else {
-                        var found = false;
-                        for(var gCount=0; gCount<body.results.length; gCount++) {
-                            for(var pCount = 0; pCount<body.results[gCount].platforms.length; pCount++) {
-                                if(body.results[gCount].platforms[pCount].name === "PC") {
-                                    //insert deck to steam games
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            if(found)
-                                break;
-                        }
-                        if(found) {
-                            insertGBGamePage(body.results[gCount].api_detail_url, steam_game.appid.toString(), function(themes, genres, err) {
-                                if(!err) {
-                                    steam_game.deck = body.results[gCount].deck;
-                                    steam_game.themes = themes;
-                                    steam_game.genres = genres;
-                                    callback(steam_game);
-                                } else {
-                                    callback(steam_game);
-                                }
-
-                            });
-                        } else {
-                            callback(steam_game);
-                        }
-                    }
-                });
-                // res.json({'appID': body.results[0].id});
-
-            }
-        });
-    });
-
-}
-
-function insertGBGamePage(api_detail_url, app_id,  callback) {
-    request({url: api_detail_url + '?api_key='+process.env.GB_API_KEY+'&format=json', json: true, timeout:10000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
-         if(body.results.date_last_updated) {
-             giantBombDatabase.insert({
-                 date_last_updated: body.results.date_last_updated,
-                 deck: body.results.deck,
-                 id: body.results.id,
-                 name: body.results.name,
-                 site_detail_url: body.results.site_detail_url,
-                 concepts: body.results.concepts,
-                 developers: body.results.developers,
-                 genres: body.results.genres,
-                 objects: body.results.objects,
-                 publishers: body.results.publishers,
-                 similar_games: body.results.similar_games,
-                 themes: body.results.themes,
-                 steamAppId: app_id
-             }, function(err, doc) {
-                 if(err == null) {
-                     callback(body.results.themes, body.results.genres);
-                 } else {
-                     addError(err)
-                 }
-             });
-         } else {
-             callback("","","Something went wrong");
-         }
-
-    });
-
-}
-
-function insertGbInfoToSteam(steam_id, users_games, callback) {
-    steamUsersDB.findAndModify({
-        query: {steam_id: steam_id},
-        update: {$set: {games: users_games}},
-        new: true
-    }, function (err, doc, lastErrorObject) {
-        if (err == null) {
-            callback(doc);
-
-        } else {
-            addError(err);
-        }
-    });
-}
-
-function steamNameToGBName(gameName, callback) { //list of custom names for giant bomb
-    var names = {
-        "counter-strike": "half life: counter-strike",
-        "call of duty 2 - multiplayer": "call of duty 2",
-        "call of duty: advanced warfare - multiplayer": "call of duty: advanced warfare",
-        "sid meier's civilization iii: complete": "sid meier's civilization iii",
-        "bully: scholarship edition": "bully",
-        "galactic civilizations ii: ultimate edition": "galactic civilizations ii",
-        "injustice: gods among us ultimate edition": "injustice : gods among us",
-        "mortal kombat komplete edition": "mk9",
-        "burnout paradise: the ultimate box": "burnout paradise",
-        "dirt 3 complete edition": "dirt 3",
-        "batman: arkham asylum goty edition": "batman arkham asylum",
-        "batman: arkham city goty": "batman arkham city",
-        "call of duty: black ops - multiplayer": "call of duty: black ops",
-        "call of duty: black ops ii - multiplayer": "call of duty: black ops ii",
-        "call of duty: black ops ii - zomnbies": "call of duty: black ops ii",
-        "call of duty: modern warfare 2 - multiplayer": "call of duty: modern warfare 2",
-        "crysis 2 maximum edition": "crysis 2",
-        "dota 2 test": "dota 2",
-        "red orchestra 2: heroes of stalingrad - single player": "red orchestra 2",
-        "rising storm/red orchestra 2 multiplayer": "red orchestra: rising storm"
-    };
-    if(names[gameName.toLowerCase()]) {
-        callback(names[gameName.toLowerCase()]);
-    } else {
-        callback(null);
-    }
-
-}
-
-
-
-
-function addError(err) {//TODO: unfinished
-    console.log("ERROR:"+err);
-    errors.push(err);
-}
-
-app.post('/update', urlencodedParser, function(req,res){
-    var steamID = req.body.steamID;
-
-    var url2 = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
-    request({url: url2, json: true}, function (error, response, body) {
-        if (error == null && response.statusCode === 200) {
-            var tempSteam = body.response;
-            tempSteam.steamID = steamID;
-
-            updateStoGB(tempSteam, tempSteam.game_count, res);
-        }
-        else{
-            console.log("ERROR:"+error);
-        }
-    });
-});
-
-// function updateStoGB(tempSteam, gameCount, res){ //looks up giantbomb ID and adds it to
-//     i = 0;
-//     (function updateOne() {
-//         sToGB.find({steamAppID: tempSteam.games[i].appid.toString()}, function (err, docs) {
-//             if(docs.length != 0){
-//                 tempSteam.games[i].giantBombID = docs[0].giantBombID.toString();
-//             }
-//             else{
-//                 tempSteam.games[i].giantBombID = 0;
-//             }
-//             i++;
-//             if(i < gameCount){
-//                 updateOne();
-//             }
-//             else{
-//                 userGames.update({"steamID": tempSteam.steamID},tempSteam, {upsert: true}, function (err, docs) {
-//                     res.sendStatus(200);
-//                 });
-//             }
-//         });
-//     })();
-// }
-
-function bestMatch(steamName, res){
-    var noSpace = steamName.replace(/ /g,"+");
-    var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=game';
-    request({url: url, json: true}, function (error, response, body) {
-        res.json({'appID': body.results[0].id});
-    });
-}
-
-
 
 app.post('/bestMatch',urlencodedParser, function(req,res){
     bestMatch(req.body.steamName, res);
@@ -536,3 +254,246 @@ app.get('/game/:id',urlencodedParser, function(req,res){
          res.json(docs);
     });
 });
+
+
+//takes in a list of users games/ checks if games are in gbdb and if not go to
+//loop goes checkGameOnGB->findGameInGBDB->insertGBPage(if applicable)->checkGameOnGB
+//instertGbInfoToSteam
+function checkGameOnGB(users_games, steam_id, callback) {
+    var i=0;
+    var gameCount = users_games.length;
+    var gamesNeedUpdate = [];
+    (function updateOne() {
+        findGameInGBDB(users_games[i], steam_id, function(updated_users_game, not_updated_game,  err){
+            if(err == undefined) {
+                users_games[i] = updated_users_game;
+
+            }
+            i++;
+            if(i < gameCount) {
+                updateOne()
+            } else {
+                insertGbInfoToSteam(steam_id, users_games, function(result) {
+                    callback(result);
+                });
+            }
+
+
+        });
+    })();
+}
+
+
+function getGBinfo(gameName, err, steam_game, callback) {
+    var noSpace = gameName.replace(/ /g, "+");
+    var url = 'http://www.giantbomb.com/api/search/?api_key=' + process.env.GB_API_KEY + '&format=json&limit=10&query=' + noSpace + '&resources=game';
+
+    request({
+        url: url,
+        json: true,
+        timeout: 20000,
+        headers: {'User-Agent': 'whatShouldIPlay'}
+    }, function (error, response, body) {
+        //TODO error check
+        //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
+        //insert logic to find correct game
+        if (err) {
+            addError(err);
+
+        } else {
+            var found = false;
+            for (var gCount = 0; gCount < body.results.length; gCount++) { //find the first game result with PC
+                for (var pCount = 0; pCount < body.results[gCount].platforms.length; pCount++) {
+                    if (body.results[gCount].platforms[pCount].name === "PC") {
+                        //insert deck to steam games
+                        found = true;
+                        break;
+                    }
+                }
+                if (found)
+                    break;
+            }
+            if (found) {
+                insertGBGamePage(body.results[gCount].api_detail_url, steam_game.appid.toString(), function (themes, genres, err) {
+                    if (!err) {
+                        steam_game.deck = body.results[gCount].deck;
+                        steam_game.themes = themes;
+                        steam_game.genres = genres;
+                        callback(steam_game);
+                    } else {
+                        callback(steam_game);
+                    }
+
+                });
+            } else {
+                callback(steam_game);
+            }
+        }
+    });
+}
+function findGameInGBDB(steam_game, steam_id, callback) {//need betterfunction name
+    var gameName = steam_game.name;
+    steamNameToGBName(steam_game.name, function(gbGameName) {
+        if(gbGameName != null)
+            gameName = gbGameName;
+
+        giantBombDatabase.findOne({steamAppId: steam_game.appid.toString()}, function (err, doc) { //check if game exists in gbdb by appid
+            if(err == null && doc != null) {
+
+                if(!steam_game.deck) {
+                    steam_game.deck = doc.deck;
+                    steam_game.themes = doc.themes;
+                    steam_game.genres = doc.genres;
+                }
+                callback(steam_game);
+
+            } else if(err != null){
+                addError(err);
+                callback("",err);
+            } else {
+                callback(steam_game, gameName);
+                getGBinfo(gameName, err, steam_game, callback);
+                // res.json({'appID': body.results[0].id});
+
+            }
+        });
+    });
+
+}
+
+function insertGBGamePage(api_detail_url, app_id,  callback) {
+    request({url: api_detail_url + '?api_key='+process.env.GB_API_KEY+'&format=json', json: true, timeout:10000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+        if(body.results.date_last_updated) {
+            giantBombDatabase.insert({
+                date_last_updated: body.results.date_last_updated,
+                deck: body.results.deck,
+                id: body.results.id,
+                name: body.results.name,
+                site_detail_url: body.results.site_detail_url,
+                concepts: body.results.concepts,
+                developers: body.results.developers,
+                genres: body.results.genres,
+                objects: body.results.objects,
+                publishers: body.results.publishers,
+                similar_games: body.results.similar_games,
+                themes: body.results.themes,
+                steamAppId: app_id
+            }, function(err, doc) {
+                if(err == null) {
+                    callback(body.results.themes, body.results.genres);
+                } else {
+                    addError(err)
+                }
+            });
+        } else {
+            callback("","","Something went wrong");
+        }
+
+    });
+
+}
+
+function insertGbInfoToSteam(steam_id, users_games, callback) {
+    steamUsersDB.findAndModify({
+        query: {steam_id: steam_id},
+        update: {$set: {games: users_games}},
+        new: true
+    }, function (err, doc, lastErrorObject) {
+        if (err == null) {
+            callback(doc);
+
+        } else {
+            addError(err);
+        }
+    });
+}
+
+function steamNameToGBName(gameName, callback) { //list of custom names for giant bomb
+    var names = {
+        "counter-strike": "half life: counter-strike",
+        "call of duty 2 - multiplayer": "call of duty 2",
+        "call of duty: advanced warfare - multiplayer": "call of duty: advanced warfare",
+        "sid meier's civilization iii: complete": "sid meier's civilization iii",
+        "bully: scholarship edition": "bully",
+        "galactic civilizations ii: ultimate edition": "galactic civilizations ii",
+        "injustice: gods among us ultimate edition": "injustice : gods among us",
+        "mortal kombat komplete edition": "mk9",
+        "burnout paradise: the ultimate box": "burnout paradise",
+        "dirt 3 complete edition": "dirt 3",
+        "batman: arkham asylum goty edition": "batman arkham asylum",
+        "batman: arkham city goty": "batman arkham city",
+        "call of duty: black ops - multiplayer": "call of duty: black ops",
+        "call of duty: black ops ii - multiplayer": "call of duty: black ops ii",
+        "call of duty: black ops ii - zomnbies": "call of duty: black ops ii",
+        "call of duty: modern warfare 2 - multiplayer": "call of duty: modern warfare 2",
+        "crysis 2 maximum edition": "crysis 2",
+        "dota 2 test": "dota 2",
+        "red orchestra 2: heroes of stalingrad - single player": "red orchestra 2",
+        "rising storm/red orchestra 2 multiplayer": "red orchestra: rising storm"
+    };
+    if(names[gameName.toLowerCase()]) {
+        callback(names[gameName.toLowerCase()]);
+    } else {
+        callback(null);
+    }
+
+}
+
+
+
+
+function addError(err) {//TODO: unfinished
+    console.log("ERROR:"+err);
+    errors.push(err);
+}
+
+function insertUserAndSetSession(req, steam_id, steam_name, callback) {
+    steamUsersDB.insert({steam_id: steam_id, steam_name: steam_name}, function (err, r) {
+        if (err == null) {
+            req.session.steamID = steam_id;
+            req.session.steamName = steam_name;
+            // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
+        } else {
+            callback(err);
+
+        }
+    });
+}
+
+function getOwnedGames(steamID, callback) { //only update playtime and games that arent there
+    var url = "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key="+ process.env.STEAM_API_KEY+"&steamid="+steamID+"&include_appinfo=1&format=json";
+    request({url: url, json: true}, function (error, response, body) {
+        if (error == null && response.statusCode === 200) {
+            var tempSteam = body.response;
+
+            //TODO: add themse concepts and genres. if game is not in gb database skip it for now send response and then look it up on gb website
+
+            steamUsersDB.findAndModify({
+                query: {steam_id: steamID},
+                update: {$set:tempSteam },
+                new: true
+            }, function(err, doc, lastErrorObject) {
+                if(err == null) {
+                    callback(doc);
+
+                } else {
+                    addError(err);
+                    callback(err);
+                }
+            });
+        }
+        else{
+            addError(error);
+            callback(error);
+            //todo if failed to return
+        }
+    });
+}
+
+function bestMatch(steamName, res){
+    var noSpace = steamName.replace(/ /g,"+");
+    var url = 'http://www.giantbomb.com/api/search/?api_key='+process.env.GB_API_KEY+'&format=json&query='+noSpace+'&resources=game';
+    request({url: url, json: true}, function (error, response, body) {
+        res.json({'appID': body.results[0].id});
+    });
+}
