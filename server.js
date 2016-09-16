@@ -162,6 +162,7 @@ app.post('/test', urlencodedParser, function(req,res){ //this is to test the che
         {//todo
             checkGameOnGB(docs[0].games, docs[0].steam_id, function (updated_users_games) {
                 res.json(updated_users_games);
+
             });
 
         }
@@ -269,6 +270,9 @@ function checkGameOnGB(users_games, steam_id, callback) {
                 users_games[i] = updated_users_game;
 
             }
+            if(not_updated_game) {
+                gamesNeedUpdate.push({game: not_updated_game, i: i});
+            }
             i++;
             if(i < gameCount) {
                 updateOne()
@@ -276,6 +280,7 @@ function checkGameOnGB(users_games, steam_id, callback) {
                 insertGbInfoToSteam(steam_id, users_games, function(result) {
                     callback(result);
                 });
+                getGBinfo(steam_id, gamesNeedUpdate);
             }
 
 
@@ -284,52 +289,70 @@ function checkGameOnGB(users_games, steam_id, callback) {
 }
 
 
-function getGBinfo(gameName, err, steam_game, callback) {
-    var noSpace = gameName.replace(/ /g, "+");
-    var url = 'http://www.giantbomb.com/api/search/?api_key=' + process.env.GB_API_KEY + '&format=json&limit=10&query=' + noSpace + '&resources=game';
-
-    request({
-        url: url,
-        json: true,
-        timeout: 20000,
-        headers: {'User-Agent': 'whatShouldIPlay'}
-    }, function (error, response, body) {
-        //TODO error check
-        //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
-        //insert logic to find correct game
-        if (err) {
-            addError(err);
-
-        } else {
-            var found = false;
-            for (var gCount = 0; gCount < body.results.length; gCount++) { //find the first game result with PC
-                for (var pCount = 0; pCount < body.results[gCount].platforms.length; pCount++) {
-                    if (body.results[gCount].platforms[pCount].name === "PC") {
-                        //insert deck to steam games
-                        found = true;
-                        break;
+function getGBinfo(steam_id, gameNames, callback) {
+    //make iterative
+    //TODO: NEED TO WORK ON 9/16
+    var i = 0;
+    var gameCount = gameNames[i].name.length;
+    (function gbUpdateOne() {
+        var noSpace = gameNames[i].name.replace(/ /g, "+");
+        var url = 'http://www.giantbomb.com/api/search/?api_key=' + process.env.GB_API_KEY + '&format=json&limit=10&query=' + noSpace + '&resources=game';
+        request({
+            url: url,
+            json: true,
+            timeout: 20000,
+            headers: {'User-Agent': 'whatShouldIPlay'}
+        }, function (error, response, body) {
+            //TODO error check
+            //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
+            //insert logic to find correct game
+            i++;
+            if (error) {
+                addError(error);
+            } else {
+                var found = false;
+                for (var gCount = 0; gCount < body.results.length; gCount++) { //find the first game result with PC
+                    for (var pCount = 0; pCount < body.results[gCount].platforms.length; pCount++) {
+                        if (body.results[gCount].platforms[pCount].name === "PC") {
+                            //insert deck to steam games
+                            found = true;
+                            break;
+                        }
                     }
+                    if (found)
+                        break;
                 }
-                if (found)
-                    break;
-            }
-            if (found) {
-                insertGBGamePage(body.results[gCount].api_detail_url, steam_game.appid.toString(), function (themes, genres, err) {
-                    if (!err) {
-                        steam_game.deck = body.results[gCount].deck;
-                        steam_game.themes = themes;
-                        steam_game.genres = genres;
-                        callback(steam_game);
+                if (found) {
+                    insertGBGamePage(body.results[gCount].api_detail_url, steam_game.appid.toString(), function (themes, genres, err) {
+                        if (!err) {
+                            console.log();
+                            steam_game.deck = body.results[gCount].deck;
+                            steam_game.themes = themes;
+                            steam_game.genres = genres;
+                        }
+                        if(i < gameCount) {
+                            gbUpdateOne();
+                        } else {
+                            callback(steam_game);
+                        }
+
+
+
+
+                    });
+                } else {
+                    if(i < gameCount) {
+                        gbUpdateOne();
                     } else {
                         callback(steam_game);
                     }
 
-                });
-            } else {
-                callback(steam_game);
+                }
             }
-        }
-    });
+        });
+    })();
+
+
 }
 function findGameInGBDB(steam_game, steam_id, callback) {//need betterfunction name
     var gameName = steam_game.name;
@@ -352,7 +375,6 @@ function findGameInGBDB(steam_game, steam_id, callback) {//need betterfunction n
                 callback("",err);
             } else {
                 callback(steam_game, gameName);
-                getGBinfo(gameName, err, steam_game, callback);
                 // res.json({'appID': body.results[0].id});
 
             }
@@ -394,6 +416,21 @@ function insertGBGamePage(api_detail_url, app_id,  callback) {
 }
 
 function insertGbInfoToSteam(steam_id, users_games, callback) {
+    steamUsersDB.findAndModify({
+        query: {steam_id: steam_id},
+        update: {$set: {games: users_games}},
+        new: true
+    }, function (err, doc, lastErrorObject) {
+        if (err == null) {
+            callback(doc);
+
+        } else {
+            addError(err);
+        }
+    });
+}
+
+function insertOneGbInfoToSteam(steam_id, users_games, i, callback) {
     steamUsersDB.findAndModify({
         query: {steam_id: steam_id},
         update: {$set: {games: users_games}},
@@ -467,20 +504,28 @@ function getOwnedGames(steamID, callback) { //only update playtime and games tha
             var tempSteam = body.response;
 
             //TODO: add themse concepts and genres. if game is not in gb database skip it for now send response and then look it up on gb website
-
-            steamUsersDB.findAndModify({
-                query: {steam_id: steamID},
-                update: {$set:tempSteam },
-                new: true
-            }, function(err, doc, lastErrorObject) {
-                if(err == null) {
+            checkGameOnGB(tempSteam.games, steamID, function(doc){
+                if(error == null) {
                     callback(doc);
 
                 } else {
-                    addError(err);
-                    callback(err);
+                    addError(error);
+                    callback(error);
                 }
             });
+            // steamUsersDB.findAndModify({
+            //     query: {steam_id: steamID},
+            //     update: {$set:tempSteam },
+            //     new: true
+            // }, function(err, doc, lastErrorObject) {
+            //     if(err == null) {
+            //         callback(doc);
+            //
+            //     } else {
+            //         addError(err);
+            //         callback(err);
+            //     }
+            // });
         }
         else{
             addError(error);
