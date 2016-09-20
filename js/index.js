@@ -61,7 +61,7 @@ $(document).ready(function () {
 		$.post("http://localhost:3000/lookupID64", {
 			"steamName": $("#inputSteamName").val()
 		}, function (data) {
-			if (data.err === undefined && data.game_count > 0) {
+			if (data.err === undefined && data.games.length > 0) {
 				$userSteamID = data.steam_id;
 				$userSteamName = data.steam_name;
 				$("#getList").show(); //add to navbar my steam list
@@ -195,13 +195,15 @@ $(document).ready(function () {
 				if (userInfo.length != 0) {
 					$usersGames = userInfo.games;
 					$("#gameList").empty().append(
-						$userSteamName + '\'s Steam Games (Count: ' + userInfo.game_count + '):\
+						$userSteamName + '\'s Steam Games (Count: ' + userInfo.games.length + '):\
 						<table id="gameTable" class="text-center display">\
 			<thead>\
 				<tr>\
 				  <th class="text-center">Game Art</th>\
 				  <th class="text-center">Title</th>\
 				  <th class="text-center">Description</th>\
+				  <th class="text-center">Themes</th>\
+				  <th class="text-center">Genres</th>\
 				  <th class="text-center">Play Time</th>\
 				  <th class="text-center">Launch Game</th>\
 				</tr>\
@@ -211,7 +213,7 @@ $(document).ready(function () {
 						"processing": true,
 						"serverSide": false,
 						"order": [
-							[3, "desc"]
+							[5, "desc"]
 						],
 						"data": $usersGames,
 						"columnDefs": [{
@@ -219,7 +221,10 @@ $(document).ready(function () {
 							"searchable": false,
 							"data": "img_logo_url",
 							"render": function (data, type, row) {
-								return '<a href=# onclick="view(' + row["giantBombID"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["appid"] + '/' + data + '.jpg"/</a>'; //gbGame art';
+									if(row["appid"])
+										return '<a href=# onclick="view(' + row["giantBombID"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["appid"] + '/' + data + '.jpg"/</a>'; //gbGame art';
+									else
+										return "No Image Found."
 							}
 						}, {
 							"targets": [1],
@@ -229,14 +234,59 @@ $(document).ready(function () {
 								return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
 							}
 						},  {
-							"targets": [2],//temp for now until I return gb deck too
-							"data": "name",
+							"targets": [2],
+							"data": "deck",
 							"render": function (data, type, row) {
-								var nameNoSpace = data.replace(/ /g, "+");
-								return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
+								if(data != null) {
+									return data;
+								} else {
+									return "No description found."
+								}
+
 							}
-						}, {
+						},	{
 							"targets": [3],
+							"data": "themes",
+							"render": function (data, type, row) {
+								if(data != null) {
+									var temp = "";
+									var length = data.length;
+									for(var i = 0; i< length; i++){
+										if(i < length-1){
+											temp += data[i].name + ", ";
+										} else {
+											temp += data[i].name;
+										}
+
+									}
+									return temp;
+								} else {
+									return "No themes found."
+								}
+
+							}
+						},	{
+							"targets": [4],
+							"data": "genres",
+							"render": function (data, type, row) {
+								if(data != null) {
+									var temp = "";
+									var length = data.length;
+									for(var i = 0; i< length; i++){
+										if(i < length-1){
+											temp += data[i].name + ", ";
+										} else {
+											temp += data[i].name;
+										}
+
+									}
+									return temp;
+								} else {
+									return "No genres found."
+								}
+							}
+						}, 	{
+							"targets": [5],
 							"searchable": false,
 							"data": "playtime_forever",
 							"render": {
@@ -258,11 +308,11 @@ $(document).ready(function () {
 								"filter": "playtime_forever"
 							}
 						}, {
-							"targets": [4],
+							"targets": [6],
 							"searchable": false,
 							"data": "appid",
 							"render": function (data, type, row) {
-								return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+								return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-md">Launch Game</button>';
 							}
 
 						}]
