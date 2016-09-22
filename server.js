@@ -169,22 +169,45 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
 
 
 
-// app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
-//     if (!req.body.steamName) return res.sendStatus(400);
-//
-//
-//
-//     steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
-//         if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
-//         {//todo
-//             checkGameOnGB(docs[0].games, docs[0].steam_id, function (updated_users_games) {
-//                 res.json(updated_users_games);
-//
-//             });
-//
-//         }
-//     });
-// });
+app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
+    if (!req.body.steamName) return res.sendStatus(400);
+
+
+
+    steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
+        var i = 0;
+        if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
+        {//todo
+            var games = docs[0].games;
+            (function updateTest() {
+                giantBombDatabase.findOne({steamAppId: games[i].appid.toString()}, function (err, doc, lastErrorObject) {
+                    if(doc) {
+                        giantBombDatabase.update({steamAppId: games[i].appid.toString()},
+                            {$set: {"img_logo_url": games[i].img_logo_url}}, function (){
+                            console.log("insert was successful");
+                            i++;
+                                if(i < games.length){
+                                    updateTest();
+                                } else {
+                                    console.log("finished")
+                                }
+                        });
+
+                    } else {
+                        console.log("game: " + games[i].name + " appid: "+ games[i].appid + " insert was not successful");
+                        i++;
+                        if(i < games.length){
+                            updateTest();
+                        } else {
+                            console.log("finished")
+                        }
+
+                    }
+                });
+            })();
+        }
+    });
+});
 
 app.post('/bestMatch',urlencodedParser, function(req,res){
     bestMatch(req.body.steamName, res);
@@ -377,7 +400,7 @@ function getGBinfo(steam_id, gamesNeedUpdate, callback) {
                         if(!found) { //if no pc version found just insert top result
                             gCount = 0;
                         }
-                        insertGBGamePage(body.results[gCount].api_detail_url, gamesNeedUpdate[i].appid.toString(), function (themes, genres, detail_url, err) {
+                        insertGBGamePage(body.results[gCount].api_detail_url, gamesNeedUpdate[i].appid.toString(), gamesNeedUpdate[i].img_logo_url, function (themes, genres, detail_url, err) {
                             if (!err) {
                                 console.log("successfully inserted "+ gamesNeedUpdate[i].name + "\n");
                                 gamesNeedUpdate[i].deck = body.results[gCount].deck;
@@ -485,8 +508,8 @@ function findGameInGBDB(steam_game, steam_id, callback) {//need betterfunction n
 
 }
 
-function insertGBGamePage(api_detail_url, app_id,  callback) {
-    request({url: api_detail_url + '?api_key='+process.env.GB_API_KEY+'&format=json', json: true, timeout:10000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
+function insertGBGamePage(api_detail_url, app_id, img_logo_url,  callback) {
+    request({url: api_detail_url + '?api_key='+process.env.GB_API_KEY+'&format=json', json: true, timeout:15000, headers: {'User-Agent': 'whatShouldIPlay'}}, function (error, response, body) {
         if(!error && response.statusCode == 200 && body) {
             giantBombDatabase.insert({
                 date_last_updated: body.results.date_last_updated,
@@ -501,7 +524,8 @@ function insertGBGamePage(api_detail_url, app_id,  callback) {
                 publishers: body.results.publishers,
                 similar_games: body.results.similar_games,
                 themes: body.results.themes,
-                steamAppId: app_id
+                steamAppId: app_id,
+                img_logo_url: img_logo_url
             }, function(err, doc) {
                 if(err == null) {
                     callback(body.results.themes, body.results.genres, body.results.site_detail_url);

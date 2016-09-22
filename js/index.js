@@ -542,13 +542,7 @@ $(document).ready(function () {
 		});
 	}
 
-	function searchGenre(genre) {
-		$.post("http://localhost:3000/searchGenre", {
-			"genre": genre
-		}, function (data) {
-			renderTable(data, genre, "Genre");
-		});
-	}
+
 	function filterTableToOwnedGames(data) {
 		var filteredGames = [];
 		var temp;
@@ -569,96 +563,9 @@ $(document).ready(function () {
 	});
 
 
-	function renderTable(data, name, type) {
-		$gamesList = data;
-		$("#gameList").empty();
-		type = type + ": ";
-		var text = '<h1 style="color:#dd4814">' + type + name + '</h1><br><table width="100%" class="table text-center table-hover" id="filteredTable">';
-		if (data.length != 0) {
-			text += '<input type="checkbox" id="onlyOwnedGames" > <label for="onlyOwnedGamescbox">Only List Games You Own (beta)</label>';
-			text += '<thead><tr><th class="text-center">Game Art</th>';
-			text += '<th class="text-center">Giant Bomb ID</th>';
-			text += '<th class="text-center">Title</th>';
-			text += '<th class="text-center">Description</th>';
-			text += '<th class="text-center">Launch Game</th>';
 
 
 
-			$("#gameList").append(text);
-			$('#filteredTable').DataTable({
-				"processing": true,
-				"serverSide": false,
-				"order": [
-					[4, "desc"]
-				],
-				"data": data,
-				"columnDefs": [{
-					"targets": [0],
-					"searchable": false,
-					"data": "image.small_url",
-					"render": function (data, type, row) {
-						return '<a href=# onclick="viewGame(' + row["id"] + ')"><img class="img box-shadow--6dp" src="' + data + '" width="300"></a>'; //gbGame art';
-					}
-				},  {
-					"targets": [1],
-					"searchable": false,
-					"data": "id"
-				}, {
-					"targets": [2],
-					"data": "name",
-					"render": function (data, type, row) {
-						var nameNoSpace = data.replace(/ /g, "+");
-						return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
-					}
-				}, {
-					"targets": [3],
-					"searchable": false,
-					"data": "deck"
-				}, {
-					"targets": [4],
-					"searchable": false,
-					"data": "steamAppID",
-					"render": function (data, type, row) {
-						return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
-					}
-
-				}]
-			});
-		}
-
-	}
-
-	function searchDeveloper(developers) {
-		$.post("http://localhost:3000/searchDevelopers", {
-			"developer": developers
-		}, function (data) {
-			renderTable(data, developers, "Developer");
-		});
-	}
-
-	function searchTheme(theme) {
-		$.post("http://localhost:3000/searchTheme", {
-			"theme": theme
-		}, function (data) {
-			renderTable(data, theme, "Theme")
-		});
-	}
-
-	function searchConcept(concept) {
-		if (concept == "Winners Don't Use Drugs") {
-			concept = '"Winners Don\'t Use Drugs"';
-		}
-
-		if (concept == "Games That Ask You to Press Start But Will Accept Other Buttons") {
-			concept = 'Games That Ask You to \"Press Start\" But Will Accept Other Buttons';
-		}
-
-		$.post("http://localhost:3000/searchConcept", {
-			"concept": concept
-		}, function (data) {
-			renderTable(data, concept, "Concept")
-		});
-	}
 
 	function getUsername() {
 		$.get("http://localhost:3000/getUsername", function (data) {
@@ -796,7 +703,110 @@ function viewGame(id) {
 			// text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
 			// text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-' + data.id + '/" height="600" width="100%"></iframe>';
 			text += '</ul>';
-			$("#gamePage").append(text);
+			$("#gameList").append(text);
+			// $("#gamePage").append(text);
 		}
+	});
+}
+
+function searchDeveloper(developers) {
+	$.post("http://localhost:3000/searchDevelopers", {
+		"developer": developers
+	}, function (data) {
+		renderTable(data, developers, "Developer");
+	});
+}
+
+function searchTheme(theme) {
+	$.post("http://localhost:3000/searchTheme", {
+		"theme": theme
+	}, function (data) {
+		renderTable(data, theme, "Theme")
+	});
+}
+
+function searchConcept(concept) {
+	if (concept == "Winners Don't Use Drugs") {
+		concept = '"Winners Don\'t Use Drugs"';
+	}
+
+	if (concept == "Games That Ask You to Press Start But Will Accept Other Buttons") {
+		concept = 'Games That Ask You to \"Press Start\" But Will Accept Other Buttons';
+	}
+
+	$.post("http://localhost:3000/searchConcept", {
+		"concept": concept
+	}, function (data) {
+		renderTable(data, concept, "Concept")
+	});
+}
+
+function renderTable(data, name, type) {
+	$gamesList = data;
+	$("#gameList").empty();
+	type = type + ": ";
+	var text = '<h1 style="color:#dd4814">' + type + name + '</h1><br><table width="100%" class="table text-center table-hover" id="filteredTable">';
+	if (data.length != 0) {
+		text += '<input type="checkbox" id="onlyOwnedGames" > <label for="onlyOwnedGamescbox">Only List Games You Own (beta)</label>';
+		text += '<thead><tr><th class="text-center">Game Art</th>';
+		text += '<th class="text-center">Giant Bomb ID</th>';
+		text += '<th class="text-center">Title</th>';
+		text += '<th class="text-center">Description</th>';
+		text += '<th class="text-center">Launch Game</th>';
+
+
+
+		$("#gameList").append(text);
+		$('#filteredTable').DataTable({
+			"processing": true,
+			"serverSide": false,
+			"order": [
+				[4, "desc"]
+			],
+			"data": data,
+			"columnDefs": [{
+				"targets": [0],
+				"searchable": false,
+				"data": "img_logo_url",
+				"render": function (data, type, row) {
+					if(row["id"] && data)
+						return '<a href=# onclick="viewGame(' + row["steamAppId"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["steamAppId"] + '/' + data + '.jpg"/</a>'; //gbGame art';
+					else
+						return "No Image Found."
+				}
+			},  {
+				"targets": [1],
+				"searchable": false,
+				"data": "id"
+			}, {
+				"targets": [2],
+				"data": "name",
+				"render": function (data, type, row) {
+					var nameNoSpace = data.replace(/ /g, "+");
+					return '<a href="http://www.giantbomb.com/search/?q=' + nameNoSpace + '" target="_blank">' + data + '</a>';
+				}
+			}, {
+				"targets": [3],
+				"searchable": false,
+				"data": "deck"
+			}, {
+				"targets": [4],
+				"searchable": false,
+				"data": "steamAppID",
+				"render": function (data, type, row) {
+					return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+				}
+
+			}]
+		});
+	}
+
+}
+
+function searchGenre(genre) {
+	$.post("http://localhost:3000/searchGenre", {
+		"genre": genre
+	}, function (data) {
+		renderTable(data, genre, "Genre");
 	});
 }
