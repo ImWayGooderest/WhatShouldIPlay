@@ -679,18 +679,18 @@ $(document).ready(function () {
 
 
 
-	function randomGame() {
-		var game = _.sample($allGamesHome);
-		viewGame(gbGame.id);
-	}
+	// function randomGame() {
+	// 	var game = _.sample($allGamesHome);
+	// 	viewGame(gbGame.id);
+	// }
 
 	function randomGameOwn() {
 		if ($userSteamID != "") {
 			var game = "";
 			do
-				gbGame = _.sample($usersGames);
-			while (gbGame.giantBombID == 0);
-			viewGame(gbGame.giantBombID);
+				game = _.sample($usersGames);
+			while (game.appid == 0);
+			viewGame(game.appid);
 		}
 	}
 
@@ -731,6 +731,7 @@ function viewGame(id) {
 	$.get("http://localhost:3000/game/" + id, function (data) {
 		if (data.length != 0) {
 			$("#gameList").empty();
+			$("#gamePage").empty();
 			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">' + data.name + '';
 			// text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="' + data.image.super_url + '" title="' + data.name + '">';
 			text += '<li class="list-group-item"><a href="steam://run/' + data.appid + '"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>';
@@ -792,8 +793,8 @@ function viewGame(id) {
 			}
 
 
-			text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
-			text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-' + data.id + '/" height="600" width="100%"></iframe>';
+			// text += '<li class="list-group-item"><h2>Giant Bomb Game Information';
+			// text += '<li class="list-group-item"><iframe src="http://www.giantbomb.com/portal/3030-' + data.id + '/" height="600" width="100%"></iframe>';
 			text += '</ul>';
 			$("#gamePage").append(text);
 		}
