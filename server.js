@@ -11,7 +11,7 @@ var dotenv = require('dotenv').config(),
 
 app.use(morgan('dev'));
 const saltRounds = 10;
-const gbTimeBtwnRequests = 18000;
+const gbTimeBtwnRequests = 10000;
 var gbSearchlock = false;
 var mongojs = require('mongojs');
 var parseString = require('xml2js').parseString;
@@ -47,7 +47,7 @@ app.use(session({secret: process.env.SECRET,
 
 app.get('/getUsername', urlencodedParser, function(req,res) {
     if(req.session.steamID ) {
-        res.json({"steamID": req.session.steamID, "username": req.session.steamName }); //TODO: send back list of games too
+        res.json({"steamID": req.session.steamID, "username": req.session.steamName, "steamGames": req.session.steamGames}); //TODO: send back list of games too
     } else {
         res.json({"steamID": ""});
     }
@@ -106,9 +106,11 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
     steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
         if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
         {//todo
+            console.log("User " + req.body.steamName + " is in database");
             req.session.steamID = docs[0].steam_id;
             req.session.steamName = docs[0].steam_name;
             getOwnedGames(req.session.steamID, function (doc) {
+                req.session.steamGames = doc;
                 res.json(doc);
             });
 
@@ -132,15 +134,27 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
                 });
             } else {
                 //if its all numbers then its the id itself
-                insertUserAndSetSession(req, req.body.steamName, req.body.steamName, function(err) {
-                    if(err != null)
-                        res.json({"err": err});
+                url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
+                request({url: url1}, function (error, response, body) {
+                    parseString(body, function (err, result) {
+                        if(typeof result.response == 'undefined'){
+                            insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
+                                if(err != null)
+                                    res.json({"err": err});
+                            });
+                        }
+                        else{
+                            res.json({"err": result.response.error});
+                        }
+
+                    });
                 });
                 // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
             }
 
             if(req.session.steamID != null) {
                 getOwnedGames(req.session.steamID, function (doc) {
+                    req.session.steamGames = doc;
                     res.json(doc);
                 }); //send back username and games
             }
@@ -254,8 +268,8 @@ app.get('/makeHome',urlencodedParser, function(req,res){
 });
 
 app.get('/game/:id',urlencodedParser, function(req,res){
-    giantBombDatabase.find({'id': parseInt(req.params.id)}, function (err, docs) {
-         res.json(docs);
+    giantBombDatabase.findOne({'steamAppId': req.params.id}, function (err, doc) {
+         res.json(doc);
     });
 });
 
@@ -296,6 +310,9 @@ function checkGameOnGB(users_games, steam_id, callback) {
                 insertGbInfoToSteam(steam_id, users_games, function(result) {
                     callback(result);
                 });
+                console.log("game need update length is: " + gamesNeedUpdate.length);
+                console.log("gbSearchlock is " + gbSearchlock);
+
                 if(gamesNeedUpdate.length > 0 && !gbSearchlock) {
                     gbSearchlock = true;
                     getGBinfo(steam_id, gamesNeedUpdate, function(){
@@ -489,7 +506,8 @@ function insertGBGamePage(api_detail_url, app_id,  callback) {
                 if(err == null) {
                     callback(body.results.themes, body.results.genres, body.results.site_detail_url);
                 } else {
-                    addError(err)
+                    addError(err);
+                    callback("","","",err);
                 }
             });
         } else {
@@ -512,6 +530,7 @@ function insertGbInfoToSteam(steam_id, users_games, callback) {
 
         } else {
             addError(err);
+            callback();
         }
     });
 }
@@ -534,6 +553,7 @@ function steamNameToGBName(gameName, callback) { //list of custom names for gian
         "call of duty: black ops ii - multiplayer": "call of duty: black ops ii",
         "call of duty: black ops ii - zombies": "call of duty: black ops ii",
         "call of duty: modern warfare 2 - multiplayer": "call of duty: modern warfare 2",
+        "call of duty: modern warfare 3 - multiplayer": "call of duty: modern warfare 3",
         "crysis 2 maximum edition": "crysis 2",
         "dota 2 test": "dota 2",
         "red orchestra 2: heroes of stalingrad - single player": "red orchestra 2",
