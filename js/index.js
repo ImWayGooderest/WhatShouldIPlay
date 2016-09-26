@@ -557,7 +557,7 @@ $(document).ready(function () {
 		var filteredGames = [];
 		var temp;
 		$.each($usersGames, function (index, value){
-			temp = _.findWhere(data, {steamAppID: value["appid"].toString()});
+			temp = _.findWhere(data, {steamAppId: value["appid"].toString()});
 			if(temp)
 				filteredGames.push(temp)
 		});
