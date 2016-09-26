@@ -196,7 +196,7 @@ $(document).ready(function () {
 				if (usersGamesList.length != 0) {
 					$("#gameList").empty().append(
 						$userSteamName + '\'s Steam Games (Count: ' + usersGamesList.length + '):\
-						<table id="gameTable" class="text-center display">\
+						<table id="gameTable" class="text-center display" cellspacing="0" width="100%">\
 			<thead>\
 				<tr>\
 				  <th class="text-center">Game Art</th>\
@@ -231,7 +231,16 @@ $(document).ready(function () {
 							"data": "name",
 							"render": function (data, type, row) {
 								var nameNoSpace = data.replace(/ /g, "+");
-								return '<a href=' + row["site_detail_url"] +' target="_blank">' + data + '</a>';
+
+								if(data){
+									if(row["site_detail_url"])
+										return '<a href=' + row["site_detail_url"] +' target="_blank">' + data + '</a>';
+									else
+										return data;
+								} else {
+									return "No Title Found."
+								}
+
 							}
 						},  {
 							"targets": [2],
@@ -289,6 +298,7 @@ $(document).ready(function () {
 							"targets": [5],
 							"searchable": false,
 							"data": "playtime_forever",
+							"width":"70px",
 							"render": {
 								"display": function (data, type, row) {
 									// if(type == "sort"){
@@ -636,11 +646,12 @@ $(document).ready(function () {
 
 function viewGame(id) {
 	$.get("http://localhost:3000/game/" + id, function (data) {
-		if (data.length != 0) {
+		if (data != null) {
 			$("#gameList").empty();
 			$("#gamePage").empty();
 			var text = '<ul class="list-group"><li class="list-group-item"><h1 style="color:#dd4814">' + data.name + '';
 			// text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src="' + data.image.super_url + '" title="' + data.name + '">';
+			text += '<li class="list-group-item"><img class="img-thumbnail box-shadow--8dp" src=http://media.steampowered.com/steamcommunity/public/images/apps/' + data["steamAppId"] + '/' + data["img_logo_url"] + '.jpg>';
 			text += '<li class="list-group-item"><a href="steam://run/' + data.appid + '"><button type="button" class="btn btn-success btn-lg">Launch Game On Steam</button></a>';
 
 			if (data.developers != null) {
@@ -770,7 +781,7 @@ function renderTable(data, name, type) {
 				"data": "img_logo_url",
 				"render": function (data, type, row) {
 					if(row["id"] && data)
-						return '<a href=# onclick="viewGame(' + row["steamAppId"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["steamAppId"] + '/' + data + '.jpg"/</a>'; //gbGame art';
+						return '<a href=# onclick="viewGame(' + row["steamAppId"] + ')"><img class="img box-shadow--6dp" src="http://media.steampowered.com/steamcommunity/public/images/apps/' + row["steamAppId"] + '/' + data + '.jpg"></a>'; //gbGame art';
 					else
 						return "No Image Found."
 				}
@@ -794,7 +805,7 @@ function renderTable(data, name, type) {
 				"searchable": false,
 				"data": "steamAppID",
 				"render": function (data, type, row) {
-					return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-lg">Launch Game</button>';
+					return '<a href="steam://run/' + data + '"><button type="button" class="btn btn-primary btn-md">Launch Game</button>';
 				}
 
 			}]

@@ -11,7 +11,7 @@ var dotenv = require('dotenv').config(),
 
 app.use(morgan('dev'));
 const saltRounds = 10;
-const gbTimeBtwnRequests = 10000;
+const gbTimeBtwnRequests = 15000;
 var gbSearchlock = false;
 var mongojs = require('mongojs');
 var parseString = require('xml2js').parseString;
@@ -576,7 +576,7 @@ function steamNameToGBName(gameName, callback) { //list of custom names for gian
         "call of duty: black ops - multiplayer": "call of duty: black ops",
         "call of duty: black ops ii - multiplayer": "call of duty: black ops ii",
         "call of duty: black ops ii - zombies": "call of duty: black ops ii",
-        "call of duty: modern warfare 2 - multiplayer": "call of duty: modern warfare 2",
+        "call of duty: modern warfare 2 - multiplayer": "modern warfare 2",
         "call of duty: modern warfare 3 - multiplayer": "call of duty: modern warfare 3",
         "crysis 2 maximum edition": "crysis 2",
         "dota 2 test": "dota 2",
