@@ -169,45 +169,45 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
 
 
 
-app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
-    if (!req.body.steamName) return res.sendStatus(400);
-
-
-
-    steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
-        var i = 0;
-        if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
-        {//todo
-            var games = docs[0].games;
-            (function updateTest() {
-                giantBombDatabase.findOne({steamAppId: games[i].appid.toString()}, function (err, doc, lastErrorObject) {
-                    if(doc) {
-                        giantBombDatabase.update({steamAppId: games[i].appid.toString()},
-                            {$set: {"img_logo_url": games[i].img_logo_url}}, function (){
-                            console.log("insert was successful");
-                            i++;
-                                if(i < games.length){
-                                    updateTest();
-                                } else {
-                                    console.log("finished")
-                                }
-                        });
-
-                    } else {
-                        console.log("game: " + games[i].name + " appid: "+ games[i].appid + " insert was not successful");
-                        i++;
-                        if(i < games.length){
-                            updateTest();
-                        } else {
-                            console.log("finished")
-                        }
-
-                    }
-                });
-            })();
-        }
-    });
-});
+// app.post('/test', urlencodedParser, function(req,res){ //this is to test the checkgameonGB function
+//     if (!req.body.steamName) return res.sendStatus(400);
+//
+//
+//
+//     steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
+//         var i = 0;
+//         if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
+//         {//todo
+//             var games = docs[0].games;
+//             (function updateTest() {
+//                 giantBombDatabase.findOne({steamAppId: games[i].appid.toString()}, function (err, doc, lastErrorObject) {
+//                     if(doc) {
+//                         giantBombDatabase.update({steamAppId: games[i].appid.toString()},
+//                             {$set: {"img_logo_url": games[i].img_logo_url}}, function (){
+//                             console.log("insert was successful");
+//                             i++;
+//                                 if(i < games.length){
+//                                     updateTest();
+//                                 } else {
+//                                     console.log("finished")
+//                                 }
+//                         });
+//
+//                     } else {
+//                         console.log("game: " + games[i].name + " appid: "+ games[i].appid + " insert was not successful");
+//                         i++;
+//                         if(i < games.length){
+//                             updateTest();
+//                         } else {
+//                             console.log("finished")
+//                         }
+//
+//                     }
+//                 });
+//             })();
+//         }
+//     });
+// });
 
 app.post('/bestMatch',urlencodedParser, function(req,res){
     bestMatch(req.body.steamName, res);
