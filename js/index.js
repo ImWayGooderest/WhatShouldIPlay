@@ -22,11 +22,11 @@ $(document).ready(function () {
 	}
 
 	$("#gbUpdate").click(function () {
-		$.post("http://localhost:3000/gbAll", {}, function (data) {});
+		$.post("/gbAll", {}, function (data) {});
 	});
 
 	$("#testButton").click(function () {
-		$.post("http://localhost:3000/test", {"steamName": $("#inputSteamName").val()}, function (data) {
+		$.post("/test", {"steamName": $("#inputSteamName").val()}, function (data) {
 			console.log(data);
 		});
 
@@ -58,7 +58,7 @@ $(document).ready(function () {
 
 	$("#lookupButton").click(function () {
 
-		$.post("http://localhost:3000/lookupID64", {
+		$.post("/lookupID64", {
 			"steamName": $("#inputSteamName").val()
 		}, function (data) {
 			if (data.err === undefined && data.games.length > 0) {
@@ -105,7 +105,7 @@ $(document).ready(function () {
 	$("#searchConcept").click(function () {
 		$("#gameList").empty();
 
-		$.get("http://localhost:3000/getConcepts", function (data) {
+		$.get("/getConcepts", function (data) {
 			if (data.length != 0) {
 				$allConcepts = _.sortBy(data);
 				buildConcepts("a");
@@ -116,7 +116,7 @@ $(document).ready(function () {
 	$("#searchTheme").click(function () {
 		$("#gameList").empty();
 
-		$.get("http://localhost:3000/getThemes", function (data) {
+		$.get("/getThemes", function (data) {
 			if (data.length != 0) {
 				$allThemes = _.sortBy(data);
 				buildThemes("all");
@@ -128,14 +128,14 @@ $(document).ready(function () {
 	// 	var registrationData = _.object($("#registerSignIn-form").serializeArray().map(function (v) {
 	// 		return [v.name, v.value];
 	// 	})); //returns form values as key value pairs
-	// 	$.post("http://localhost:3000/exists", {
+	// 	$.post("/exists", {
 	// 		"username": registrationData.email.toLowerCase()
 	// 	}, function (data) {
 	// 		if (data.length != 0) {
 	// 			$("#errorMsg2").text("Sign up failed. Account already exists, please try again!");
 	// 			$("#errorMsg2").effect("shake");
 	// 		} else {
-	// 			$.post("http://localhost:3000/signup", {
+	// 			$.post("/signup", {
 	// 				"username": registrationData.email.toLowerCase(),
 	// 				"password": registrationData.password,
 	// 				"steamID": registrationData.steamID
@@ -153,7 +153,7 @@ $(document).ready(function () {
 	// 	var signinData = _.object($("#registerSignIn-form").serializeArray().map(function (v) {
 	// 		return [v.name, v.value];
 	// 	})); //converts form data to associative array
-	// 	$.post("http://localhost:3000/signin", {
+	// 	$.post("/signin", {
 	// 		"username": signinData.email.toLowerCase(),
 	// 		"password": signinData.password
 	// 	}, function (data) {
@@ -358,7 +358,7 @@ $(document).ready(function () {
 	function buildGenres() {
 		$("#gameList").empty();
 
-		$.get("http://localhost:3000/getGenres", function (data) {
+		$.get("/getGenres", function (data) {
 			if (data.length != 0) {
 				data = _.sortBy(data);
 				var text = '<div class="container">';
@@ -389,7 +389,7 @@ $(document).ready(function () {
 	function buildDeveloper() {
 		$("#gameList").empty();
 
-		$.get("http://localhost:3000/getDevelopers", function (data) {
+		$.get("/getDevelopers", function (data) {
 			if (data.length != 0) {
 				data = _.sortBy(data);
 				var text = '<div class="container">';
@@ -531,7 +531,7 @@ $(document).ready(function () {
 			$("#table" + $appID).empty();
 			var text = '<a href="http://www.giantbomb.com/gbGame/3030-' + temp + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 			$("#table" + $appID).append(text);
-			$.post("http://localhost:3000/match", {
+			$.post("/match", {
 				"steamAppID": parseInt($appID),
 				"giantBombID": parseInt(temp)
 			}, function (data) {});
@@ -539,13 +539,13 @@ $(document).ready(function () {
 	}
 
 	function bestMatch(name, steamAppID) {
-		$.post("http://localhost:3000/bestMatch", {
+		$.post("/bestMatch", {
 			"steamName": name
 		}, function (data) {
 			$("#table" + steamAppID).empty();
 			var text = '<a href="http://www.giantbomb.com/gbGame/3030-' + data.appID + '/" target="_blank"><button type="button" class="btn btn-primary">Giant Bomb Page</button>';
 			$("#table" + steamAppID).append(text);
-			$.post("http://localhost:3000/match", {
+			$.post("/match", {
 				"steamAppID": parseInt(steamAppID),
 				"giantBombID": parseInt(data.appID)
 			}, function (data) {});
@@ -578,7 +578,7 @@ $(document).ready(function () {
 
 
 	function getUsername() {
-		$.get("http://localhost:3000/getUsername", function (data) {
+		$.get("/getUsername", function (data) {
 			if(data.steamID != "") {
 				$userSteamID = data.steamID;
 				$userSteamName = data.username;
@@ -645,7 +645,7 @@ $(document).ready(function () {
 });
 
 function viewGame(id) {
-	$.get("http://localhost:3000/game/" + id, function (data) {
+	$.get("/game/" + id, function (data) {
 		if (data != null) {
 			$("#gameList").empty();
 			$("#gamePage").empty();
@@ -721,7 +721,7 @@ function viewGame(id) {
 }
 
 function searchDeveloper(developers) {
-	$.post("http://localhost:3000/searchDevelopers", {
+	$.post("/searchDevelopers", {
 		"developer": developers
 	}, function (data) {
 		renderTable(data, developers, "Developer");
@@ -729,7 +729,7 @@ function searchDeveloper(developers) {
 }
 
 function searchTheme(theme) {
-	$.post("http://localhost:3000/searchTheme", {
+	$.post("/searchTheme", {
 		"theme": theme
 	}, function (data) {
 		renderTable(data, theme, "Theme")
@@ -745,7 +745,7 @@ function searchConcept(concept) {
 		concept = 'Games That Ask You to \"Press Start\" But Will Accept Other Buttons';
 	}
 
-	$.post("http://localhost:3000/searchConcept", {
+	$.post("/searchConcept", {
 		"concept": concept
 	}, function (data) {
 		renderTable(data, concept, "Concept")
@@ -815,7 +815,7 @@ function renderTable(data, name, type) {
 }
 
 function searchGenre(genre) {
-	$.post("http://localhost:3000/searchGenre", {
+	$.post("/searchGenre", {
 		"genre": genre
 	}, function (data) {
 		renderTable(data, genre, "Genre");
