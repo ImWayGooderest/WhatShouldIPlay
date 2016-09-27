@@ -50,3 +50,4 @@ node_modules/
 .idea/WhatShouldIPlay.iml
 *.env
 *.xml___jb_tmp___
+npm-debug.log
