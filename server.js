@@ -7,10 +7,8 @@ var dotenv = require('dotenv').config(),
     session = require('express-session'),
     cookieParser = require("cookie-parser"),
     bcrypt = require('bcrypt'),
-    morgan = require('morgan'),
-    timeout = require('connect-timeout');
+    morgan = require('morgan');
 
-app.use(timeout('500s'));
 app.use(morgan('dev'));
 const saltRounds = 10;
 const gbTimeBtwnRequests = 15000;
@@ -41,12 +39,11 @@ var jsonParser = bodyParser.json();
 
 var errors = [];
 app.use(cookieParser());
-app.use(haltOnTimedout);
 app.use(session({secret: process.env.SECRET,
     saveUninitialized: true,
     resave: true
 }));
-app.use(haltOnTimedout);
+
 
 app.get('/getUsername', urlencodedParser, function(req,res) {
     if(req.session.steamID ) {
@@ -646,8 +643,4 @@ function bestMatch(steamName, res){
     request({url: url, json: true}, function (error, response, body) {
         res.json({'appID': body.results[0].id});
     });
-}
-
-function haltOnTimedout(req, res, next){
-    if (!req.timedout) next();
 }
