@@ -7,8 +7,10 @@ var dotenv = require('dotenv').config(),
     session = require('express-session'),
     cookieParser = require("cookie-parser"),
     bcrypt = require('bcrypt'),
-    morgan = require('morgan');
+    morgan = require('morgan'),
+    timeout = require('connect-timeout');
 
+// app.use(timeout('500s'));
 app.use(morgan('dev'));
 const saltRounds = 10;
 const gbTimeBtwnRequests = 15000;
@@ -39,11 +41,12 @@ var jsonParser = bodyParser.json();
 
 var errors = [];
 app.use(cookieParser());
+// app.use(haltOnTimedout);
 app.use(session({secret: process.env.SECRET,
     saveUninitialized: true,
     resave: true
 }));
-
+// app.use(haltOnTimedout);
 
 app.get('/getUsername', urlencodedParser, function(req,res) {
     if(req.session.steamID ) {
@@ -101,6 +104,7 @@ app.post('/signin',function(req,res){  //TODO: w ill be used only for admin acco
 
 app.post('/lookupID64', urlencodedParser, function(req,res){
     if (!req.body.steamName) return res.sendStatus(400);
+    console.log("/lookupID64 User: " + req.body.steamName);
     req.body.steamName  = req.body.steamName.toLowerCase();
     // check if steam name is in database
     steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
@@ -115,15 +119,28 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
             });
 
         } else {
+            console.log("User " + req.body.steamName + " is NOT in database");
             var url1 = "";
             if(isNaN(req.body.steamName)) {
+                console.log("its all numbers");
                 url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
                 request({url: url1}, function (error, response, body) {
+                    console.log("found user");
                     parseString(body, function (err, result) {
                         if(typeof result.response == 'undefined'){
                             insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
                                 if(err != null)
                                     res.json({"err": err});
+                                else {
+                                    if(req.session.steamID != null) {
+                                        console.log("Getting " + req.session.steamName +" games!");
+                                        getOwnedGames(req.session.steamID, function (doc) {
+                                            req.session.steamGames = doc;
+                                            console.log(req.session.steamName + " games are sending!");
+                                            res.json(doc);
+                                        }); //send back username and games
+                                    }
+                                }
                             });
                         }
                         else{
@@ -134,6 +151,7 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
                 });
             } else {
                 //if its all numbers then its the id itself
+                console.log("its all numbers");
                 url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
                 request({url: url1}, function (error, response, body) {
                     parseString(body, function (err, result) {
@@ -141,6 +159,16 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
                             insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
                                 if(err != null)
                                     res.json({"err": err});
+                                else {
+                                    if(req.session.steamID != null) {
+                                        console.log("Getting " + req.session.steamName +" games!");
+                                        getOwnedGames(req.session.steamID, function (doc) {
+                                            req.session.steamGames = doc;
+                                            console.log(req.session.steamName + " games are sending!");
+                                            res.json(doc);
+                                        }); //send back username and games
+                                    }
+                                }
                             });
                         }
                         else{
@@ -152,12 +180,7 @@ app.post('/lookupID64', urlencodedParser, function(req,res){
                 // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
             }
 
-            if(req.session.steamID != null) {
-                getOwnedGames(req.session.steamID, function (doc) {
-                    req.session.steamGames = doc;
-                    res.json(doc);
-                }); //send back username and games
-            }
+
 
         }
     });
@@ -229,8 +252,8 @@ app.post('/match',urlencodedParser, function(req,res){
                 giantBombDatabase.update({"id": body.results.id},body.results, {upsert: true});
             }
             res.sendStatus(200);
-        });     
-    });   
+        });
+    });
 });
 
 
@@ -306,31 +329,22 @@ function checkGameOnGB(users_games, steam_id, callback) {
     var gamesNeedUpdate = [];
     (function updateOne() {
         findGameInGBDB(users_games[i], steam_id, function(updated_users_game, not_updated_game,  err){
+            // console.log("findGameInGBDB: "+users_games[i].name);
             if(err == undefined) {
                 users_games[i] = updated_users_game;
 
             }
             if(not_updated_game) {
-                var timeInMss = Date.now();
-                gamesNotFoundDB.findOne({name: not_updated_game.name}, function(err, doc){
-                    if(!doc) {
-                        gamesNotFoundDB.insert({name: not_updated_game.name, time: timeInMss}, function(err, doc){
-                            gamesNeedUpdate.push(not_updated_game);
-                        });
-                    } else if((Math.floor((timeInMss - doc.time)/1000)) > 864000 ) { //if it hasn't been updated in 10 days
-                        gamesNotFoundDB.insert({name: not_updated_game.name, time: timeInMss}, function(err, doc){
-                            gamesNeedUpdate.push(not_updated_game);
-                        });
-                    }
-                });
-
+                gamesNeedUpdate.push(not_updated_game);
             }
             i++;
 
             if(i < gameCount) {
                 updateOne()
             } else {
+                console.log(steam_id + " games have been updated");
                 insertGbInfoToSteam(steam_id, users_games, function(result) {
+                    console.log(steam_id + " games have been inserted to steam");
                     callback(result);
                 });
                 console.log("game need update length is: " + gamesNeedUpdate.length);
@@ -350,128 +364,157 @@ function checkGameOnGB(users_games, steam_id, callback) {
     })();
 }
 
+function checkGameOnGamesNotFound(not_updated_game, callback){
+    var timeInMss = Date.now();
+    gamesNotFoundDB.findOne({name: not_updated_game.name}, function(err, doc){
+        if(!doc) {
+            gamesNotFoundDB.insert({name: not_updated_game.name, time: timeInMss}, function(err, doc){
+                callback(true);
+            });
+        } else if((Math.floor((timeInMss - doc.time)/1000)) > 864000 ) { //if it hasn't been updated in 10 days
+            gamesNotFoundDB.insert({name: not_updated_game.name, time: timeInMss}, function(err, doc){
+                callback(true);
+            });
+        } else {
+            callback(false);
+        }
+    });
+}
+
 
 function getGBinfo(steam_id, gamesNeedUpdate, callback) {
-    //make iterative
-    //TODO: NEED TO WORK ON 9/16
+    //TODO: make asynchronous and clean up
     var i = 0;
     var gameCount = gamesNeedUpdate.length;
     (function gbUpdateOne() {
-        steamNameToGBName(gamesNeedUpdate[i].name, function(gbGameName) {
-            var noSpace = gbGameName.replace(/ /g, "+");
-            var url = 'http://www.giantbomb.com/api/search/?api_key=' + process.env.GB_API_KEY + '&format=json&limit=10&query=' + noSpace + '&resources=game';
-            request({
-                url: url,
-                json: true,
-                timeout: 20000,
-                headers: {'User-Agent': 'whatShouldIPlay'}
-            }, function (error, response, body) {
-                //TODO error check
-                //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
-                //insert logic to find correct game
-                if (error) {
-                    addError(error);
-                    i++;
-                    if(i < gameCount) {
-                        setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
-                        // } else {
-                        //     callback(gamesNeedUpdate[i]);
-                        // }
+        checkGameOnGamesNotFound(gamesNeedUpdate[i], function(needsUpdate, err){
+            if(needsUpdate) {
+                steamNameToGBName(gamesNeedUpdate[i].name, function(gbGameName) {
+                    var noSpace = gbGameName.replace(/ /g, "+");
+                    var url = 'http://www.giantbomb.com/api/search/?api_key=' + process.env.GB_API_KEY + '&format=json&limit=10&query=' + noSpace + '&resources=game';
+                    request({
+                        url: url,
+                        json: true,
+                        timeout: 20000,
+                        headers: {'User-Agent': 'whatShouldIPlay'}
+                    }, function (error, response, body) {
+                        //TODO error check
+                        //TODO: make sure names match exactly maybe strip out non alphanumeric chars or something
+                        //insert logic to find correct game
+                        if (error) {
+                            addError(error);
+                            i++;
+                            if(i < gameCount) {
+                                setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
+                                // } else {
+                                //     callback(gamesNeedUpdate[i]);
+                                // }
 
-                    } else {
-                        callback()
-                    }
-                } else if (body.results.length > 0) {
-                    var found = false;
-                    for (var gCount = 0; gCount < body.results.length; gCount++) { //find the first game result with PC
-                        if(body.results[gCount].platforms != null) {
-                            for (var pCount = 0; pCount < body.results[gCount].platforms.length; pCount++) {
-                                if (body.results[gCount].platforms[pCount].name === "PC") {
-                                    //insert deck to steam games
-                                    found = true;
-                                    break;
-                                }
+                            } else {
+                                callback()
                             }
-                        }
-                        if (found)
-                            break;
-                    }
-                    if (gamesNeedUpdate[i].appid != null) {
-                        if(!found) { //if no pc version found just insert top result
-                            gCount = 0;
-                        }
-                        insertGBGamePage(body.results[gCount].api_detail_url, gamesNeedUpdate[i].appid.toString(), gamesNeedUpdate[i].img_logo_url, function (themes, genres, detail_url, err) {
-                            if (!err) {
-                                console.log("successfully inserted "+ gamesNeedUpdate[i].name + "\n");
-                                gamesNeedUpdate[i].deck = body.results[gCount].deck;
-                                gamesNeedUpdate[i].themes = themes;
-                                gamesNeedUpdate[i].genres = genres;
-                                gamesNeedUpdate[i].site_detail_url = detail_url;
-                                steamUsersDB.findAndModify({
-                                    query: {steam_id: steam_id,
-                                        "games.$.appid": gamesNeedUpdate[i].appid},
-                                    update: {$set: {"games.$": gamesNeedUpdate[i]}},
-                                    new: true
-                                }, function (err, doc, lastErrorObject) {
-                                    i++;
-                                    if (err == null) {
-
-                                        if(i < gameCount) {
-                                            setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
-                                            // } else {
-                                            //     callback(gamesNeedUpdate[i]);
-                                            // }
-
-                                        } else {
-                                            callback()
+                        } else if (body.results.length > 0) {
+                            var found = false;
+                            for (var gCount = 0; gCount < body.results.length; gCount++) { //find the first game result with PC
+                                if(body.results[gCount].platforms != null) {
+                                    for (var pCount = 0; pCount < body.results[gCount].platforms.length; pCount++) {
+                                        if (body.results[gCount].platforms[pCount].name === "PC") {
+                                            //insert deck to steam games
+                                            found = true;
+                                            break;
                                         }
+                                    }
+                                }
+                                if (found)
+                                    break;
+                            }
+                            if (gamesNeedUpdate[i].appid != null) {
+                                if(!found) { //if no pc version found just insert top result
+                                    gCount = 0;
+                                }
+                                insertGBGamePage(body.results[gCount].api_detail_url, gamesNeedUpdate[i].appid.toString(), gamesNeedUpdate[i].img_logo_url, function (themes, genres, detail_url, err) {
+                                    if (!err) {
+                                        console.log("successfully inserted "+ gamesNeedUpdate[i].name + "\n");
+                                        gamesNeedUpdate[i].deck = body.results[gCount].deck;
+                                        gamesNeedUpdate[i].themes = themes;
+                                        gamesNeedUpdate[i].genres = genres;
+                                        gamesNeedUpdate[i].site_detail_url = detail_url;
+                                        steamUsersDB.findAndModify({
+                                            query: {steam_id: steam_id,
+                                                "games.$.appid": gamesNeedUpdate[i].appid},
+                                            update: {$set: {"games.$": gamesNeedUpdate[i]}},
+                                            new: true
+                                        }, function (err, doc, lastErrorObject) {
+                                            i++;
+                                            if (err == null) {
+
+                                                if(i < gameCount) {
+                                                    setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
+                                                    // } else {
+                                                    //     callback(gamesNeedUpdate[i]);
+                                                    // }
+
+                                                } else {
+                                                    callback()
+                                                }
+                                            } else {
+                                                addError(err);
+                                                if(i < gameCount) {
+                                                    setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
+                                                    // } else {
+                                                    //     callback(gamesNeedUpdate[i]);
+                                                    // }
+
+                                                } else {
+                                                    callback()
+                                                }
+                                            }
+
+
+                                        });
                                     } else {
-                                        addError(err);
+                                        i++;
                                         if(i < gameCount) {
                                             setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
-                                            // } else {
-                                            //     callback(gamesNeedUpdate[i]);
-                                            // }
+
 
                                         } else {
                                             callback()
                                         }
                                     }
-
-
                                 });
                             } else {
+                                console.log("Could not find appid: "+ gamesNeedUpdate[i].name);
                                 i++;
                                 if(i < gameCount) {
                                     setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
-
-
                                 } else {
                                     callback()
                                 }
+
                             }
-                        });
-                    } else {
-                        console.log("Could not find appid: "+ gamesNeedUpdate[i].name);
-                        i++;
-                        if(i < gameCount) {
-                            setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
                         } else {
-                            callback()
+                            console.log("Could not find on giant bomb: "+ gamesNeedUpdate[i].name);
+                            i++;
+                            if(i < gameCount) {
+                                setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
+                            }else {
+                                callback()
+                            }
+
                         }
-
-                    }
-                } else {
-                    console.log("Could not find on giant bomb: "+ gamesNeedUpdate[i].name);
-                    i++;
-                    if(i < gameCount) {
-                        setTimeout(function(){gbUpdateOne()}, gbTimeBtwnRequests);
-                    }else {
-                        callback()
-                    }
-
+                    });
+                });
+            } else {
+                //if game doesnt need update go to next game
+                i++;
+                if(i < gameCount) {
+                    gbUpdateOne();
+                }else {
+                    callback()
                 }
-            });
+
+            }
         });
 
     })();
@@ -492,6 +535,7 @@ function findGameInGBDB(steam_game, steam_id, callback) {//need betterfunction n
                     steam_game.themes = doc.themes;
                     steam_game.genres = doc.genres;
                     steam_game.site_detail_url = doc.site_detail_url;
+
                 }
                 callback(steam_game);
 
@@ -606,6 +650,7 @@ function insertUserAndSetSession(req, steam_id, steam_name, callback) {
         if (err == null) {
             req.session.steamID = steam_id;
             req.session.steamName = steam_name;
+            callback();
             // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
         } else {
             callback(err);
@@ -619,16 +664,22 @@ function getOwnedGames(steamID, callback) { //only update playtime and games tha
     request({url: url, json: true}, function (error, response, body) {
         if (error == null && response.statusCode === 200) {
             var tempSteam = body.response;
-            checkGameOnGB(tempSteam.games, steamID, function(doc){
-                if(error == null) {
-                    callback(doc);
+            if(tempSteam.games.length > 0) {
+                checkGameOnGB(tempSteam.games, steamID, function(doc){
+                    if(error == null) {
+                        callback(doc);
 
-                } else {
-                    addError(error);
-                    callback(error);
-                }
-            });
+                    } else {
+                        addError(error);
+                        callback(error);
+                    }
+                });
+            } else {
+                addError("No games found");
+                callback("No games found");
+            }
         }
+
         else{
             addError(error);
             callback(error);
@@ -644,3 +695,7 @@ function bestMatch(steamName, res){
         res.json({'appID': body.results[0].id});
     });
 }
+
+// function haltOnTimedout(req, res, next){
+//     if (!req.timedout) next();
+// }
