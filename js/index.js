@@ -56,8 +56,30 @@ $(document).ready(function () {
 	// 	$("#errorMsg2").text("");
 	// });
 
-	$("#lookupButton").click(function () {
+	// $("#lookupButton").click(function () {
+    //
+	// 	$.post("/lookupID64", {
+	// 		"steamName": $("#inputSteamName").val()
+	// 	}, function (data) {
+	// 		if (data.err === undefined && data.games.length > 0) {
+	// 			$userSteamID = data.steam_id;
+	// 			$userSteamName = data.steam_name;
+	// 			$usersGames = data.games;
+	// 			$("#getList").show(); //add to navbar my steam list
+	// 			$("#randomOwned").show(); //add to navbar random gbGame I own
+	// 			showSteamGames($usersGames);
+	// 		} else {
+	// 			if(data.game_count === 0) {
+	// 				alert("No Games Found!")
+	// 			} else {
+	// 				alert(data.err);
+	// 			}
+	// 		}
+	// 	});
+	// });
 
+	$("#steam-form").submit(function(event) {
+		event.preventDefault();
 		$.post("/lookupID64", {
 			"steamName": $("#inputSteamName").val()
 		}, function (data) {
@@ -77,6 +99,8 @@ $(document).ready(function () {
 			}
 		});
 	});
+
+
 
 	$("#home").click(function () {
 		makeHome();

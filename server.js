@@ -104,86 +104,91 @@ app.post('/signin',function(req,res){  //TODO: w ill be used only for admin acco
 
 app.post('/lookupID64', urlencodedParser, function(req,res){
     if (!req.body.steamName) return res.sendStatus(400);
-    console.log("/lookupID64 User: " + req.body.steamName);
-    req.body.steamName  = req.body.steamName.toLowerCase();
-    // check if steam name is in database
-    steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
-        if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
-        {//todo
-            console.log("User " + req.body.steamName + " is in database");
-            req.session.steamID = docs[0].steam_id;
-            req.session.steamName = docs[0].steam_name;
-            getOwnedGames(req.session.steamID, function (doc) {
-                req.session.steamGames = doc;
-                res.json(doc);
-            });
-
-        } else {
-            console.log("User " + req.body.steamName + " is NOT in database");
-            var url1 = "";
-            if(isNaN(req.body.steamName)) {
-                console.log("its all numbers");
-                url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
-                request({url: url1}, function (error, response, body) {
-                    console.log("found user");
-                    parseString(body, function (err, result) {
-                        if(typeof result.response == 'undefined'){
-                            insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
-                                if(err != null)
-                                    res.json({"err": err});
-                                else {
-                                    if(req.session.steamID != null) {
-                                        console.log("Getting " + req.session.steamName +" games!");
-                                        getOwnedGames(req.session.steamID, function (doc) {
-                                            req.session.steamGames = doc;
-                                            console.log(req.session.steamName + " games are sending!");
-                                            res.json(doc);
-                                        }); //send back username and games
-                                    }
-                                }
-                            });
-                        }
-                        else{
-                            res.json({"err": result.response.error});
-                        }
-
-                    });
+    else if(req.body.steamName.length < 19){
+        console.log("/lookupID64 User: " + req.body.steamName);
+        req.body.steamName  = req.body.steamName.toLowerCase();
+        // check if steam name is in database
+        steamUsersDB.find({steam_name: req.body.steamName }, function (err, docs) {
+            if(err == null && docs.length >0) //if the user is already in the database, set session and update owned games
+            {//todo
+                console.log("User " + req.body.steamName + " is in database");
+                req.session.steamID = docs[0].steam_id;
+                req.session.steamName = docs[0].steam_name;
+                getOwnedGames(req.session.steamID, function (doc) {
+                    req.session.steamGames = doc;
+                    res.json(doc);
                 });
+
             } else {
-                //if its all numbers then its the id itself
-                console.log("its all numbers");
-                url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
-                request({url: url1}, function (error, response, body) {
-                    parseString(body, function (err, result) {
-                        if(typeof result.response == 'undefined'){
-                            insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
-                                if(err != null)
-                                    res.json({"err": err});
-                                else {
-                                    if(req.session.steamID != null) {
-                                        console.log("Getting " + req.session.steamName +" games!");
-                                        getOwnedGames(req.session.steamID, function (doc) {
-                                            req.session.steamGames = doc;
-                                            console.log(req.session.steamName + " games are sending!");
-                                            res.json(doc);
-                                        }); //send back username and games
+                console.log("User " + req.body.steamName + " is NOT in database");
+                var url1 = "";
+                if(isNaN(req.body.steamName)) {
+                    console.log("Steam User: " + req.body.steamName + " is not numbers!");
+                    url1 = 'http://steamcommunity.com/id/'+req.body.steamName+'/?xml=1';
+                    request({url: url1}, function (error, response, body) {
+                        console.log("Found User On Steam Community");
+                        parseString(body, function (err, result) {
+                            if(typeof result.response == 'undefined'){
+                                insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
+                                    if(err != null)
+                                        res.json({"err": err});
+                                    else {
+                                        if(req.session.steamID != null) {
+                                            console.log("Getting " + req.session.steamName +" games!");
+                                            getOwnedGames(req.session.steamID, function (doc) {
+                                                req.session.steamGames = doc;
+                                                console.log(req.session.steamName + " games are sending!");
+                                                res.json(doc);
+                                            }); //send back username and games
+                                        }
                                     }
-                                }
-                            });
-                        }
-                        else{
-                            res.json({"err": result.response.error});
-                        }
+                                });
+                            }
+                            else{
+                                res.json({"err": result.response.error});
+                            }
 
+                        });
                     });
-                });
-                // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
+                } else {
+                    //if its all numbers then its the id itself
+                    console.log("Steam Name is all numbers: " + req.body.steamName);
+                    url1 = 'http://steamcommunity.com/profiles/'+req.body.steamName+'/?xml=1';
+                    request({url: url1}, function (error, response, body) {
+                        parseString(body, function (err, result) {
+                            if(typeof result.response == 'undefined'){
+                                insertUserAndSetSession(req, result.profile.steamID64[0], req.body.steamName, function(err) {
+                                    if(err != null)
+                                        res.json({"err": err});
+                                    else {
+                                        if(req.session.steamID != null) {
+                                            console.log("Getting " + req.session.steamName +" games!");
+                                            getOwnedGames(req.session.steamID, function (doc) {
+                                                req.session.steamGames = doc;
+                                                console.log(req.session.steamName + " games are sending!");
+                                                res.json(doc);
+                                            }); //send back username and games
+                                        }
+                                    }
+                                });
+                            }
+                            else{
+                                res.json({"err": result.response.error});
+                            }
+
+                        });
+                    });
+                    // res.json({steamID: result.profile.steamID64[0], steamName: req.body.steamName});
+                }
+
+
+
             }
+        });
+    } else {
+        res.json({"err": "Name is too long!"});
+    }
 
-
-
-        }
-    });
 
 
 
