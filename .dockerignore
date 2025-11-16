@@ -1,0 +1,16 @@
+**/node_modules
+**/dist
+**/build
+**/.git
+**/.gitignore
+**/.env
+**/.env.*
+**/logs
+**/coverage
+**/*.log
+**/README.md
+**/.vscode
+**/.idea
+**/docker-compose.yml
+**/Dockerfile
+**/.dockerignore
